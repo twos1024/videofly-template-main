@@ -5,6 +5,16 @@ const billingProvider = process.env.NEXT_PUBLIC_BILLING_PROVIDER || "creem";
 const isStripeProvider = billingProvider === "stripe";
 const stripeRequiredMessage =
   "Stripe billing selected: set STRIPE_API_KEY and STRIPE_WEBHOOK_SECRET";
+const vercelHost =
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+  process.env.VERCEL_BRANCH_URL ||
+  process.env.VERCEL_URL;
+const inferredAppUrl = vercelHost ? `https://${vercelHost}` : undefined;
+const resolvedAppUrl = process.env.NEXT_PUBLIC_APP_URL || inferredAppUrl;
+const resolvedAuthSecret =
+  process.env.BETTER_AUTH_SECRET ||
+  process.env.AUTH_SECRET ||
+  process.env.NEXTAUTH_SECRET;
 
 export const env = createEnv({
   server: {
@@ -14,8 +24,8 @@ export const env = createEnv({
     GITHUB_CLIENT_ID: z.string().optional(),
     GITHUB_CLIENT_SECRET: z.string().optional(),
     // Google OAuth
-    GOOGLE_CLIENT_ID: z.string().min(1),
-    GOOGLE_CLIENT_SECRET: z.string().min(1),
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
     // Stripe
     STRIPE_API_KEY: isStripeProvider
       ? z.string().min(1, stripeRequiredMessage)
@@ -27,18 +37,18 @@ export const env = createEnv({
     CREEM_API_KEY: z.string().optional(),
     CREEM_WEBHOOK_SECRET: z.string().optional(),
     // Resend Email
-    RESEND_API_KEY: z.string().min(1),
-    RESEND_FROM: z.string().min(1),
+    RESEND_API_KEY: z.string().optional(),
+    RESEND_FROM: z.string().optional(),
     // Admin
     ADMIN_EMAIL: z.string().optional(),
     // Debug
     IS_DEBUG: z.string().optional(),
   },
   client: {
-    NEXT_PUBLIC_APP_URL: z.string().min(1),
+    NEXT_PUBLIC_APP_URL: z.string().url().min(1),
   },
   runtimeEnv: {
-    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+    BETTER_AUTH_SECRET: resolvedAuthSecret,
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
@@ -47,7 +57,7 @@ export const env = createEnv({
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     CREEM_API_KEY: process.env.CREEM_API_KEY,
     CREEM_WEBHOOK_SECRET: process.env.CREEM_WEBHOOK_SECRET,
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_APP_URL: resolvedAppUrl,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_FROM: process.env.RESEND_FROM,
     ADMIN_EMAIL: process.env.ADMIN_EMAIL,

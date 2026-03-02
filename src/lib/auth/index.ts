@@ -4,8 +4,7 @@
 import type { User } from "./auth";
 import { getSessionSafe } from "./session";
 
-// Re-export auth instance (server-only)
-export { auth, type Session, type User } from "./auth";
+export type { Session, User } from "./auth";
 
 /**
  * Get current user session on the server side (RSC / Server Actions)

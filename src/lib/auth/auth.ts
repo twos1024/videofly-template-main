@@ -133,6 +133,10 @@ const buildTrustedOrigins = (request?: Request) => {
 
 const authBaseURL =
   process.env.BETTER_AUTH_BASE_URL || env.NEXT_PUBLIC_APP_URL;
+const hasMagicLinkConfig = Boolean(env.RESEND_API_KEY && env.RESEND_FROM);
+const hasGoogleOAuthConfig = Boolean(
+  env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+);
 
 type AuthPlugin =
   | ReturnType<typeof nextCookies>
@@ -142,50 +146,57 @@ type AuthPlugin =
 const plugins: AuthPlugin[] = [
   // Avoid Next.js dev DataCloneError from cookies() in some environments.
   ...(process.env.NODE_ENV === "development" ? [] : [nextCookies()]),
-  magicLink({
-    sendMagicLink: async ({ email, url }) => {
-      // Dynamic import to avoid Edge Runtime issues in middleware
-      const { MagicLinkEmail } = await import(
-        "@/lib/emails/magic-link-email"
-      );
-      const { resend } = await import("@/lib/email");
-      const { siteConfig } = await import("@/config/site");
-
-      // Check if user exists to determine email type
-      const [existingUser] = await db
-        .select({ name: users.name, emailVerified: users.emailVerified })
-        .from(users)
-        .where(eq(users.email, email))
-        .limit(1);
-
-      const userVerified = !!existingUser?.emailVerified;
-      const authSubject = userVerified
-        ? `Sign-in link for ${(siteConfig as { name: string }).name}`
-        : "Activate your account";
-
-      try {
-        await resend.emails.send({
-          from: env.RESEND_FROM,
-          to: email,
-          subject: authSubject,
-          react: MagicLinkEmail({
-            firstName: existingUser?.name ?? "",
-            actionUrl: url,
-            mailType: userVerified ? "login" : "register",
-            siteName: (siteConfig as { name: string }).name,
-          }),
-          headers: {
-            "X-Entity-Ref-ID": new Date().getTime() + "",
-          },
-        });
-      } catch (error) {
-        console.error("Failed to send magic link email:", error);
-        throw error;
-      }
-    },
-    expiresIn: 300, // 5 minutes
-  }),
 ];
+
+if (hasMagicLinkConfig) {
+  const resendFrom = env.RESEND_FROM;
+
+  plugins.push(
+    magicLink({
+      sendMagicLink: async ({ email, url }) => {
+        // Dynamic import to avoid Edge Runtime issues in middleware
+        const { MagicLinkEmail } = await import(
+          "@/lib/emails/magic-link-email"
+        );
+        const { resend } = await import("@/lib/email");
+        const { siteConfig } = await import("@/config/site");
+
+        // Check if user exists to determine email type
+        const [existingUser] = await db
+          .select({ name: users.name, emailVerified: users.emailVerified })
+          .from(users)
+          .where(eq(users.email, email))
+          .limit(1);
+
+        const userVerified = !!existingUser?.emailVerified;
+        const authSubject = userVerified
+          ? `Sign-in link for ${(siteConfig as { name: string }).name}`
+          : "Activate your account";
+
+        try {
+          await resend.emails.send({
+            from: resendFrom!,
+            to: email,
+            subject: authSubject,
+            react: MagicLinkEmail({
+              firstName: existingUser?.name ?? "",
+              actionUrl: url,
+              mailType: userVerified ? "login" : "register",
+              siteName: (siteConfig as { name: string }).name,
+            }),
+            headers: {
+              "X-Entity-Ref-ID": new Date().getTime() + "",
+            },
+          });
+        } catch (error) {
+          console.error("Failed to send magic link email:", error);
+          throw error;
+        }
+      },
+      expiresIn: 300, // 5 minutes
+    })
+  );
+}
 
 if (env.CREEM_API_KEY) {
   plugins.push(
@@ -333,6 +344,16 @@ if (env.CREEM_API_KEY) {
   );
 }
 
+const socialProviders = hasGoogleOAuthConfig
+  ? {
+    google: {
+      clientId: env.GOOGLE_CLIENT_ID!,
+      clientSecret: env.GOOGLE_CLIENT_SECRET!,
+      prompt: "select_account" as const,
+    },
+  }
+  : undefined;
+
 export const auth = betterAuth({
   baseURL: authBaseURL,
   basePath: "/api/auth",
@@ -378,14 +399,8 @@ export const auth = betterAuth({
     }),
   },
 
-  // Google OAuth
-  socialProviders: {
-    google: {
-      clientId: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
-      prompt: "select_account", // Always show account picker
-    },
-  },
+  // Google OAuth (optional)
+  socialProviders,
 
   // Custom user fields
   user: {

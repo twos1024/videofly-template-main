@@ -22,10 +22,18 @@ export interface SiteConfig {
   };
 }
 
+const vercelHost =
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+  process.env.VERCEL_BRANCH_URL ||
+  process.env.VERCEL_URL;
+const inferredAppUrl = vercelHost ? `https://${vercelHost}` : undefined;
+const resolvedAppUrl =
+  process.env.NEXT_PUBLIC_APP_URL || inferredAppUrl || "https://pixelmuse.app";
+
 export const siteConfig: SiteConfig = {
   name: "PixelMuse",
   description: "AI 智能创作平台 - 场景化模板，一键生成精美图片和视频",
-  url: process.env.NEXT_PUBLIC_APP_URL || "https://pixelmuse.app",
+  url: resolvedAppUrl,
   ogImage: "/og.png",
   links: {},
   auth: {

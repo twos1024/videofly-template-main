@@ -5,6 +5,16 @@ const billingProvider = process.env.NEXT_PUBLIC_BILLING_PROVIDER || "creem";
 const isStripeProvider = billingProvider === "stripe";
 const stripeRequiredMessage =
   "Stripe billing selected: set STRIPE_API_KEY and STRIPE_WEBHOOK_SECRET";
+const vercelHost =
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+  process.env.VERCEL_BRANCH_URL ||
+  process.env.VERCEL_URL;
+const inferredAppUrl = vercelHost ? `https://${vercelHost}` : undefined;
+const resolvedAppUrl = process.env.NEXT_PUBLIC_APP_URL || inferredAppUrl;
+const resolvedAuthSecret =
+  process.env.BETTER_AUTH_SECRET ||
+  process.env.AUTH_SECRET ||
+  process.env.NEXTAUTH_SECRET;
 
 export const env = createEnv({
   server: {
@@ -18,7 +28,7 @@ export const env = createEnv({
       : z.string().optional(),
   },
   client: {
-    NEXT_PUBLIC_APP_URL: z.string().min(1),
+    NEXT_PUBLIC_APP_URL: z.string().url().min(1),
     NEXT_PUBLIC_STRIPE_PRO_PRODUCT_ID: z.string().optional(),
     NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID: z.string().optional(),
     NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID: z.string().optional(),
@@ -29,10 +39,10 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_HOST: z.string().optional(),
   },
   runtimeEnv: {
-    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+    BETTER_AUTH_SECRET: resolvedAuthSecret,
     STRIPE_API_KEY: process.env.STRIPE_API_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_APP_URL: resolvedAppUrl,
     NEXT_PUBLIC_STRIPE_PRO_PRODUCT_ID:
       process.env.NEXT_PUBLIC_STRIPE_PRO_PRODUCT_ID,
     NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID:

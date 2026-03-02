@@ -1,4 +1,4 @@
-import { auth, type Session } from "./auth";
+import type { Session } from "./auth";
 
 const RETRYABLE_ERROR_CODES = new Set([
   "ECONNRESET",
@@ -64,6 +64,7 @@ export async function getSessionWithRetry(
   maxRetries = 2
 ): Promise<Session | null> {
   let lastError: unknown;
+  const { auth } = await import("./auth");
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {

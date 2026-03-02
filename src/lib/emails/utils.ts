@@ -127,14 +127,22 @@ export async function sendWelcomeEmail(props: {
 }) {
   const { resend } = await import("@/lib/email");
   const { env } = await import("@/lib/auth/env.mjs");
+  const fromAddress = env.RESEND_FROM;
   const siteConfig = await getSiteConfig(props.locale);
 
   const translations = await getEmailTranslations(props.locale || "en");
   const { WelcomeEmail } = await import("@/lib/emails/welcome-email");
 
+  if (!fromAddress) {
+    return {
+      success: false,
+      error: new Error("Missing RESEND_FROM configuration"),
+    };
+  }
+
   try {
     await resend.emails.send({
-      from: env.RESEND_FROM,
+      from: fromAddress,
       to: props.to,
       subject: translations.welcome.subject,
       react: WelcomeEmail({
@@ -176,14 +184,22 @@ export async function sendResetPasswordEmail(props: {
 }) {
   const { resend } = await import("@/lib/email");
   const { env } = await import("@/lib/auth/env.mjs");
+  const fromAddress = env.RESEND_FROM;
   const siteConfig = await getSiteConfig(props.locale);
 
   const translations = await getEmailTranslations(props.locale || "en");
   const { ResetPasswordEmail } = await import("@/lib/emails/reset-password-email");
 
+  if (!fromAddress) {
+    return {
+      success: false,
+      error: new Error("Missing RESEND_FROM configuration"),
+    };
+  }
+
   try {
     await resend.emails.send({
-      from: env.RESEND_FROM,
+      from: fromAddress,
       to: props.to,
       subject: translations.resetPassword.subject,
       react: ResetPasswordEmail({
