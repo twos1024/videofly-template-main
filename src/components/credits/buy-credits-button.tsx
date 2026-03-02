@@ -15,10 +15,11 @@ export function BuyCreditsButton({ locale }: BuyCreditsButtonProps) {
   const t = useTranslations("dashboard.credits");
 
   return (
-    <Link href={`/${locale}/pricing`}>
-      <button className="w-full py-3 px-4 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
-        {t("buyCredits")}
-      </button>
+    <Link
+      href={`/${locale}/pricing`}
+      className="block w-full rounded-lg bg-primary px-4 py-3 text-center font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+    >
+      {t("buyCredits")}
     </Link>
   );
 }

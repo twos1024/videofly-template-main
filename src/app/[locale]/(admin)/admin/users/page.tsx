@@ -36,9 +36,11 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
   const search = params.search || "";
   const limit = 20;
   const offset = (page - 1) * limit;
+  const prevPageHref = `?page=${page - 1}${search ? `&search=${encodeURIComponent(search)}` : ""}`;
+  const nextPageHref = `?page=${page + 1}${search ? `&search=${encodeURIComponent(search)}` : ""}`;
 
   // 获取用户总数（带搜索）
-  let totalUsersResult;
+  let totalUsersResult: Array<{ count: number }>;
   if (search) {
     totalUsersResult = await db
       .select({ count: count() })
@@ -51,7 +53,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
   const totalPages = Math.ceil(totalUsers / limit);
 
   // 获取用户列表
-  let usersList;
+  let usersList: (typeof users.$inferSelect)[];
   if (search) {
     usersList = await db
       .select()
@@ -215,32 +217,33 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
                 {t("users.page", { page, total: totalPages })}
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild={page > 1}
-                  disabled={page <= 1}
-                >
-                  <a
-                    href={`?page=${page - 1}${search ? `&search=${encodeURIComponent(search)}` : ""}`}
-                  >
+                {page > 1 ? (
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={prevPageHref}>
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      {t("users.prevPage")}
+                    </a>
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" disabled>
                     <ChevronLeft className="h-4 w-4 mr-1" />
                     {t("users.prevPage")}
-                  </a>
-                </Button>
+                  </Button>
+                )}
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page >= totalPages}
-                >
-                  <a
-                    href={`?page=${page + 1}${search ? `&search=${encodeURIComponent(search)}` : ""}`}
-                  >
+                {page < totalPages ? (
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={nextPageHref}>
+                      {t("users.nextPage")}
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </a>
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" disabled>
                     {t("users.nextPage")}
                     <ChevronRight className="h-4 w-4 ml-1" />
-                  </a>
-                </Button>
+                  </Button>
+                )}
               </div>
             </div>
           )}
