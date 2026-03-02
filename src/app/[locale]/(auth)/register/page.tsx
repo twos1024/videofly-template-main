@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 
 import { UserAuthForm } from "@/components/user-auth-form";
 import type { Locale } from "@/config/i18n-config";
+import { getAuthProvidersConfig } from "@/lib/auth/provider-config";
 import { getDictionary } from "@/lib/get-dictionary";
 
 export const metadata = {
@@ -22,6 +23,7 @@ export default async function RegisterPage({
 }) {
   const { locale } = await params;
   const dict = await getDictionary(locale);
+  const authProviders = getAuthProvidersConfig();
 
   return (
     <div className="container grid h-screen w-screen flex-col items-center justify-center lg:max-w-none lg:grid-cols-2 lg:px-0">
@@ -47,7 +49,11 @@ export default async function RegisterPage({
             </p>
           </div>
           <Suspense fallback={<div className="h-10" />}>
-            <UserAuthForm lang={locale} dict={dict.login} disabled={true} />
+            <UserAuthForm
+              lang={locale}
+              dict={dict.login}
+              authProviders={authProviders}
+            />
           </Suspense>
           <p className="px-8 text-center text-sm text-muted-foreground">
             By clicking continue, you agree to our{" "}

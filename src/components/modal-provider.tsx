@@ -3,6 +3,7 @@
 import { SignInModalContent } from "@/components/sign-in-modal";
 import { useSigninModal } from "@/hooks/use-signin-modal";
 import { useMounted } from "@/hooks/use-mounted";
+import type { AuthProvidersConfig } from "@/lib/auth/provider-config.types";
 import {
   Dialog,
   DialogContent,
@@ -13,10 +14,12 @@ import {
 export const ModalProvider = ({
   dict,
   locale,
+  authProviders,
   children,
 }: {
   dict: Record<string, unknown>;
   locale: string;
+  authProviders: AuthProvidersConfig;
   children: React.ReactNode;
 }) => {
   const mounted = useMounted();
@@ -42,7 +45,11 @@ export const ModalProvider = ({
             <DialogDescription className="sr-only">
               {signInDict.signin_subtitle || "Sign in with Google or Email Magic Link"}
             </DialogDescription>
-            <SignInModalContent lang={locale} dict={signInDict} />
+            <SignInModalContent
+              lang={locale}
+              dict={signInDict}
+              authProviders={authProviders}
+            />
           </DialogContent>
         </Dialog>
       )}

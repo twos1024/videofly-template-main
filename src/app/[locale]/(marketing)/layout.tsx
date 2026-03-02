@@ -6,6 +6,7 @@ import { ModalProvider } from "@/components/modal-provider";
 import { LandingHeader } from "@/components/landing/header";
 import { LandingFooter } from "@/components/landing/footer";
 import { getDictionary } from "@/lib/get-dictionary";
+import { getAuthProvidersConfig } from "@/lib/auth/provider-config";
 
 export default async function MarketingLayout({
   children,
@@ -20,6 +21,7 @@ export default async function MarketingLayout({
   const safeLocale = locale === "zh" ? "zh" : "en";
   const user = await getCurrentUser();
   const dict = await getDictionary(safeLocale);
+  const authProviders = getAuthProvidersConfig();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -27,7 +29,7 @@ export default async function MarketingLayout({
         <LandingHeader user={user ?? null} />
       </Suspense>
 
-      <ModalProvider dict={dict} locale={safeLocale}>
+      <ModalProvider dict={dict} locale={safeLocale} authProviders={authProviders}>
         <main className="flex-1">{children}</main>
       </ModalProvider>
 

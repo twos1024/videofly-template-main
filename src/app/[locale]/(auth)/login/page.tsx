@@ -9,6 +9,7 @@ import * as Icons from "@/components/ui/icons";
 
 import { UserAuthForm } from "@/components/user-auth-form";
 import type { Locale } from "@/config/i18n-config";
+import { getAuthProvidersConfig } from "@/lib/auth/provider-config";
 import { getDictionary } from "@/lib/get-dictionary";
 
 export const metadata: Metadata = {
@@ -25,6 +26,7 @@ export default async function LoginPage({
 }) {
   const { locale } = await params;
   const dict = await getDictionary(locale);
+  const authProviders = getAuthProvidersConfig();
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
       <Link
@@ -56,7 +58,11 @@ export default async function LoginPage({
           </p>
         </div>
         <Suspense fallback={<div className="h-10" />}>
-          <UserAuthForm lang={locale} dict={dict.login} />
+          <UserAuthForm
+            lang={locale}
+            dict={dict.login}
+            authProviders={authProviders}
+          />
         </Suspense>
         {/* <p className="px-8 text-center text-sm text-muted-foreground">
           <Link

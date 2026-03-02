@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 
 import { authClient } from "@/lib/auth/client";
+import type { AuthProvidersConfig } from "@/lib/auth/provider-config.types";
 import { Button } from "@/components/ui/button";
 import * as Icons from "@/components/ui/icons";
 import { Input } from "@/components/ui/input";
@@ -19,9 +19,14 @@ type Dictionary = Record<string, string>;
 interface SignInModalContentProps {
   lang: string;
   dict: Dictionary;
+  authProviders: AuthProvidersConfig;
 }
 
-export const SignInModalContent = ({ lang, dict }: SignInModalContentProps) => {
+export const SignInModalContent = ({
+  lang,
+  dict,
+  authProviders,
+}: SignInModalContentProps) => {
   const signInModal = useSigninModal();
   const searchParams = useSearchParams();
   const [signInClicked, setSignInClicked] = useState<string | null>(null);
@@ -33,6 +38,10 @@ export const SignInModalContent = ({ lang, dict }: SignInModalContentProps) => {
   const callbackURL = searchParams?.get("from") ?? defaultCallbackURL;
 
   const handleSocialLogin = async (provider: "google") => {
+    if (!authProviders.google) {
+      toast.error("Google login is not enabled");
+      return;
+    }
     setSignInClicked(provider);
     try {
       await authClient.signIn.social({
@@ -51,6 +60,11 @@ export const SignInModalContent = ({ lang, dict }: SignInModalContentProps) => {
 
   const handleMagicLinkLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!authProviders.magicLink) {
+      toast.error("Email login is not enabled");
+      return;
+    }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -101,7 +115,7 @@ export const SignInModalContent = ({ lang, dict }: SignInModalContentProps) => {
       {/* Body */}
       <div className="flex flex-col space-y-4 bg-secondary/50 px-4 py-8">
         {/* Google Login - Priority */}
-        {siteConfig.auth.enableGoogleLogin && (
+        {authProviders.google && (
           <Button
             variant="default"
             className="w-full"
@@ -118,9 +132,9 @@ export const SignInModalContent = ({ lang, dict }: SignInModalContentProps) => {
         )}
 
         {/* Magic Link Email Login */}
-        {siteConfig.auth.enableMagicLinkLogin && (
+        {authProviders.magicLink && (
           <>
-            {siteConfig.auth.enableGoogleLogin && (
+            {authProviders.google && (
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
@@ -159,7 +173,7 @@ export const SignInModalContent = ({ lang, dict }: SignInModalContentProps) => {
               </div>
               <Button
                 type="submit"
-                variant={siteConfig.auth.enableGoogleLogin ? "outline" : "default"}
+                variant={authProviders.google ? "outline" : "default"}
                 className="w-full"
                 disabled={isLoading}
               >
@@ -174,6 +188,12 @@ export const SignInModalContent = ({ lang, dict }: SignInModalContentProps) => {
           </>
         )}
 
+        {!authProviders.hasAny && (
+          <div className="rounded-md border border-dashed bg-background/50 px-3 py-2 text-sm text-muted-foreground">
+            No login provider is configured yet. Please contact the site admin.
+          </div>
+        )}
+
         {/* Footer text */}
         <p className="text-center text-xs text-muted-foreground">
           {dict.terms_notice || "By continuing, you agree to our Terms of Service and Privacy Policy."}
@@ -184,11 +204,27 @@ export const SignInModalContent = ({ lang, dict }: SignInModalContentProps) => {
 };
 
 // Legacy component for backward compatibility
-export const SignInModal = ({ lang, dict }: SignInModalContentProps) => {
-  return <SignInModalContent lang={lang} dict={dict} />;
+export const SignInModal = ({ lang, dict, authProviders }: SignInModalContentProps) => {
+  return (
+    <SignInModalContent
+      lang={lang}
+      dict={dict}
+      authProviders={authProviders}
+    />
+  );
 };
 
 // Wrapper component for use with Modal
-export function SignInModalWrapper({ lang, dict }: SignInModalContentProps) {
-  return <SignInModalContent lang={lang} dict={dict} />;
+export function SignInModalWrapper({
+  lang,
+  dict,
+  authProviders,
+}: SignInModalContentProps) {
+  return (
+    <SignInModalContent
+      lang={lang}
+      dict={dict}
+      authProviders={authProviders}
+    />
+  );
 }
