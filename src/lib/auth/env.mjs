@@ -10,11 +10,13 @@ const vercelHost =
   process.env.VERCEL_BRANCH_URL ||
   process.env.VERCEL_URL;
 const inferredAppUrl = vercelHost ? `https://${vercelHost}` : undefined;
-const resolvedAppUrl = process.env.NEXT_PUBLIC_APP_URL || inferredAppUrl;
+const resolvedAppUrl =
+  process.env.NEXT_PUBLIC_APP_URL || inferredAppUrl || "http://localhost:3000";
 const resolvedAuthSecret =
   process.env.BETTER_AUTH_SECRET ||
   process.env.AUTH_SECRET ||
-  process.env.NEXTAUTH_SECRET;
+  process.env.NEXTAUTH_SECRET ||
+  `videofly-insecure-fallback-secret-${vercelHost || "local"}`;
 
 export const env = createEnv({
   server: {

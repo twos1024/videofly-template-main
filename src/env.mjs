@@ -10,11 +10,24 @@ const vercelHost =
   process.env.VERCEL_BRANCH_URL ||
   process.env.VERCEL_URL;
 const inferredAppUrl = vercelHost ? `https://${vercelHost}` : undefined;
-const resolvedAppUrl = process.env.NEXT_PUBLIC_APP_URL || inferredAppUrl;
+const resolvedAppUrl =
+  process.env.NEXT_PUBLIC_APP_URL || inferredAppUrl || "http://localhost:3000";
 const resolvedAuthSecret =
   process.env.BETTER_AUTH_SECRET ||
   process.env.AUTH_SECRET ||
-  process.env.NEXTAUTH_SECRET;
+  process.env.NEXTAUTH_SECRET ||
+  `videofly-insecure-fallback-secret-${vercelHost || "local"}`;
+
+if (
+  process.env.NODE_ENV === "production" &&
+  !process.env.BETTER_AUTH_SECRET &&
+  !process.env.AUTH_SECRET &&
+  !process.env.NEXTAUTH_SECRET
+) {
+  console.warn(
+    "[env] BETTER_AUTH_SECRET is missing. Using an insecure fallback secret. Set BETTER_AUTH_SECRET in deployment environment."
+  );
+}
 
 export const env = createEnv({
   server: {
