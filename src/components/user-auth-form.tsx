@@ -151,7 +151,7 @@ export function UserAuthForm({
           ) : (
             <Icons.Google className="mr-2 h-4 w-4" />
           )}{" "}
-          Continue with Google
+          {dict.continue_google || "Continue with Google"}
         </button>
       )}
       {!authProviders.hasAny && (
