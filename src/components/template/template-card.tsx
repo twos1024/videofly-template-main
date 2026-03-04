@@ -24,7 +24,6 @@ export function TemplateCard({ template }: TemplateCardProps) {
   return (
     <Card
       className="group cursor-pointer overflow-hidden border-border/50 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:-translate-y-1"
-      role="button"
       tabIndex={0}
       aria-label={loc.name}
       onClick={() => router.push(`/${locale}/create/${template.id}`)}

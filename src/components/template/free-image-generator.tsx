@@ -117,8 +117,8 @@ export function FreeImageGenerator() {
         />
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t("modelLabel")}</label>
-          <div className="flex flex-wrap gap-2">
+          <label htmlFor="model-select" className="text-sm font-medium">{t("modelLabel")}</label>
+          <div id="model-select" className="flex flex-wrap gap-2">
             {imageModels.map((m) => (
               <button
                 key={m.id}
@@ -138,8 +138,8 @@ export function FreeImageGenerator() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">{t("ratioLabel")}</label>
-          <div className="flex flex-wrap gap-2">
+          <label htmlFor="ratio-select" className="text-sm font-medium">{t("ratioLabel")}</label>
+          <div id="ratio-select" className="flex flex-wrap gap-2">
             {ASPECT_RATIOS.map((r) => (
               <button
                 key={r}

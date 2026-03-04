@@ -153,38 +153,50 @@ export function TemplateWizard({
           <CardContent className="space-y-5">
             {loc.variables.map((variable) => (
               <div key={variable.key} className="space-y-2">
-                <label className="text-sm font-medium">
-                  {variable.label}
-                  {variable.required && (
-                    <span className="ml-1 text-destructive">*</span>
-                  )}
-                </label>
                 {variable.type === "select" && variable.options ? (
-                  <div className="flex flex-wrap gap-2">
-                    {variable.options.map((opt, optIdx) => {
-                      const originalValue = variable.originalOptions?.[optIdx] ?? opt;
-                      return (
-                        <button
-                          key={originalValue}
-                          onClick={() => updateValue(variable.key, originalValue)}
-                          className={cn(
-                            "rounded-full border px-3 py-1.5 text-sm transition-all",
-                            values[variable.key] === originalValue
-                              ? "border-primary bg-primary/10 text-primary font-medium"
-                              : "border-border hover:border-primary/30 hover:bg-muted",
-                          )}
-                        >
-                          {opt}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <>
+                    <p className="text-sm font-medium">
+                      {variable.label}
+                      {variable.required && (
+                        <span className="ml-1 text-destructive">*</span>
+                      )}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {variable.options.map((opt, optIdx) => {
+                        const originalValue = variable.originalOptions?.[optIdx] ?? opt;
+                        return (
+                          <button
+                            key={originalValue}
+                            type="button"
+                            onClick={() => updateValue(variable.key, originalValue)}
+                            className={cn(
+                              "rounded-full border px-3 py-1.5 text-sm transition-all",
+                              values[variable.key] === originalValue
+                                ? "border-primary bg-primary/10 text-primary font-medium"
+                                : "border-border hover:border-primary/30 hover:bg-muted",
+                            )}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
                 ) : (
-                  <Input
-                    placeholder={variable.placeholder}
-                    value={values[variable.key] ?? ""}
-                    onChange={(e) => updateValue(variable.key, e.target.value)}
-                  />
+                  <>
+                    <label htmlFor={variable.key} className="text-sm font-medium">
+                      {variable.label}
+                      {variable.required && (
+                        <span className="ml-1 text-destructive">*</span>
+                      )}
+                    </label>
+                    <Input
+                      id={variable.key}
+                      placeholder={variable.placeholder}
+                      value={values[variable.key] ?? ""}
+                      onChange={(e) => updateValue(variable.key, e.target.value)}
+                    />
+                  </>
                 )}
               </div>
             ))}

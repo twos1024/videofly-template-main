@@ -102,7 +102,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
             {/* 语言切换 */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <button type="button" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <Globe className="h-4 w-4" />
                   <span className="hidden sm:inline">{locale.toUpperCase()}</span>
                 </button>
@@ -138,7 +138,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                  <button type="button" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                     <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-background/20">
                       <span className="text-sm font-medium">
                         {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
@@ -238,6 +238,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
                   <div className="flex items-center gap-3 p-3">
                     <Globe className="h-4 w-4 text-muted-foreground" />
                     <button
+                      type="button"
                       onClick={() => switchLocale("en")}
                       className="text-sm hover:text-foreground transition-colors text-muted-foreground"
                     >
@@ -245,6 +246,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
                     </button>
                     <span className="text-muted-foreground">/</span>
                     <button
+                      type="button"
                       onClick={() => switchLocale("zh")}
                       className="text-sm hover:text-foreground transition-colors text-muted-foreground"
                     >
@@ -276,6 +278,7 @@ export function LandingHeader({ user }: { user?: User | null }) {
                         {t("settings")}
                       </LocaleLink>
                       <button
+                        type="button"
                         onClick={handleSignOut}
                         className="p-2 text-left text-destructive hover:bg-destructive/10 rounded-md transition-colors"
                       >

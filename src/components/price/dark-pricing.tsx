@@ -268,6 +268,7 @@ interface TabButtonProps {
 function TabButton({ active, children, onClick, showBadge }: TabButtonProps) {
   return (
     <button
+      type="button"
       onClick={onClick}
       className={cn(
         "relative rounded-md px-6 py-2.5 text-sm font-semibold transition-all duration-200",
@@ -383,6 +384,7 @@ function PricingCard({
         {userId ? (
           isCurrent ? (
             <button
+              type="button"
               onClick={onPortal}
               className={cn(
                 "w-full rounded-lg py-2.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2",
@@ -400,6 +402,7 @@ function PricingCard({
                 <TooltipTrigger asChild>
                   <span className="w-full">
                     <button
+                      type="button"
                       disabled={isPending || isRestricted}
                       onClick={() => onCheckout(product)}
                       className={cn(
@@ -436,6 +439,7 @@ function PricingCard({
           )
         ) : (
           <button
+            type="button"
             onClick={signInModal.onOpen}
             className={cn(
               "w-full rounded-lg py-2.5 text-sm font-semibold transition-colors",

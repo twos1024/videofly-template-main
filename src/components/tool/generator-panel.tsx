@@ -34,11 +34,12 @@ interface SectionLabelProps {
   children: React.ReactNode;
   required?: boolean;
   className?: string;
+  htmlFor?: string;
 }
 
-function SectionLabel({ children, required, className }: SectionLabelProps) {
+function SectionLabel({ children, required, className, htmlFor }: SectionLabelProps) {
   return (
-    <label className={cn("text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2 block", className)}>
+    <label htmlFor={htmlFor} className={cn("text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2 block", className)}>
       {children}
       {required && <span className="text-destructive ml-1">*</span>}
     </label>
@@ -294,7 +295,7 @@ export function GeneratorPanel({
             {currentModel && (
               <DropdownMenu open={isModelDropdownOpen} onOpenChange={setIsModelDropdownOpen}>
                 <DropdownMenuTrigger asChild disabled={isLoading}>
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm text-white">
+                  <button type="button" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm text-white">
                     {renderModelIcon(currentModel.id, currentModel.name, "sm")}
                     <span>{currentModel.name}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
@@ -346,9 +347,10 @@ export function GeneratorPanel({
           {/* Prompt Section */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <SectionLabel className="mb-0">{t("generator.prompt")}</SectionLabel>
+              <SectionLabel className="mb-0" htmlFor="generator-prompt">{t("generator.prompt")}</SectionLabel>
             </div>
             <textarea
+              id="generator-prompt"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder={t("generator.promptPlaceholder")}

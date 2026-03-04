@@ -438,7 +438,7 @@ export function ToolPageLayout({
           localStorage.setItem(NOTIFICATION_ASKED_KEY, "1");
           toast.info(tNotify("generationWillNotify"), {
             description: tNotify("notificationDescription"),
-            duration: Infinity, // 保持显示直到用户操作
+            duration: Number.POSITIVE_INFINITY, // 保持显示直到用户操作
             closeButton: true,  // 显示关闭按钮
             action: {
               label: tNotify("enableNotifications"),

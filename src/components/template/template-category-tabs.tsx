@@ -34,6 +34,7 @@ export function TemplateCategoryTabs({
   return (
     <div className="flex flex-wrap gap-2">
       <button
+        type="button"
         onClick={() => onCategoryChange("all")}
         className={cn(
           "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",
@@ -50,6 +51,7 @@ export function TemplateCategoryTabs({
         return (
           <button
             key={cat.id}
+            type="button"
             onClick={() => onCategoryChange(cat.id)}
             className={cn(
               "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all",

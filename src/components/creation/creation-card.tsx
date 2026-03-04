@@ -122,21 +122,14 @@ export function CreationCard({
 
   return (
     <>
-      <div
+      <button
+        type="button"
         className={cn(
-          "group relative overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg cursor-pointer",
+          "group relative overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg cursor-pointer w-full text-left",
           isDeleting && "opacity-50 pointer-events-none"
         )}
-        role="button"
-        tabIndex={0}
         aria-label={video.prompt || t("actions.viewDetails")}
         onClick={() => onClick(video.uuid)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            onClick(video.uuid);
-          }
-        }}
         onMouseEnter={handlePreviewStart}
         onMouseLeave={handlePreviewStop}
       >
@@ -254,7 +247,7 @@ export function CreationCard({
 
           {/* Error is displayed in the preview area for failed videos */}
         </div>
-      </div>
+      </button>
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

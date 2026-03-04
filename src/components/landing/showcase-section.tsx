@@ -94,6 +94,7 @@ export function ShowcaseSection() {
           <div className="flex items-center justify-center gap-2 mb-10 flex-wrap">
             {TABS.map((tab) => (
               <button
+                type="button"
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className={cn(

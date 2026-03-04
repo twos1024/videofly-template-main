@@ -28,7 +28,7 @@ export function PricingCards({
   const isYearlyDefault = true;
   const [isYearly, setIsYearly] = useState<boolean>(isYearlyDefault);
   const signInModal = useSigninModal();
-  const pricingData = priceDataMap[locale] || priceDataMap['en'];
+  const pricingData = priceDataMap[locale] || priceDataMap.en;
   const toggleBilling = () => {
     setIsYearly(!isYearly);
   };
