@@ -1,4 +1,5 @@
 import { ApiError } from "./error";
+import { ZodError } from "zod";
 
 /**
  * Standard success response
@@ -24,6 +25,9 @@ export function apiError(message: string, status = 400, details?: unknown) {
  * Handle errors and return appropriate response
  */
 export function handleApiError(error: unknown) {
+  if (error instanceof ZodError) {
+    return apiError("Invalid request", 400, error.flatten());
+  }
   if (error instanceof ApiError) {
     return apiError(error.message, error.status, error.details);
   }

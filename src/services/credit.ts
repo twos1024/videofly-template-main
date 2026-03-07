@@ -40,6 +40,13 @@ interface PackageAllocation {
   credits: number;
 }
 
+type HoldFinalStatus = "SETTLED" | "RELEASED";
+
+interface HoldMutationResult {
+  status: HoldFinalStatus;
+  changed: boolean;
+}
+
 export class CreditService {
   /**
    * 获取用户积分余额
@@ -220,82 +227,8 @@ export class CreditService {
     });
   }
 
-  async settleInTx(trx: any, videoUuid: string): Promise<void> {
-    const [hold] = await trx
-      .select()
-      .from(creditHolds)
-      .where(eq(creditHolds.videoUuid, videoUuid))
-      .limit(1);
-
-    if (!hold) {
-      throw new Error(`Hold not found for video: ${videoUuid}`);
-    }
-
-    if (hold.status === "SETTLED") {
-      return;
-    }
-
-    if (hold.status !== "HOLDING") {
-      throw new Error(`Invalid hold status: ${hold.status}`);
-    }
-
-    const allocation = hold.packageAllocation as PackageAllocation[];
-
-    for (const { packageId, credits } of allocation) {
-      await trx
-        .update(creditPackages)
-        .set({
-          frozenCredits: sql`${creditPackages.frozenCredits} - ${credits}`,
-        })
-        .where(
-          and(
-            eq(creditPackages.id, packageId),
-            gte(creditPackages.frozenCredits, credits)
-          )
-        );
-
-      const [updatedPkg] = await trx
-        .select()
-        .from(creditPackages)
-        .where(eq(creditPackages.id, packageId))
-        .limit(1);
-
-      if (
-        updatedPkg &&
-        updatedPkg.remainingCredits === 0 &&
-        updatedPkg.frozenCredits === 0
-      ) {
-        await trx
-          .update(creditPackages)
-          .set({ status: CreditPackageStatus.DEPLETED })
-          .where(eq(creditPackages.id, packageId));
-      }
-    }
-
-    await trx
-      .update(creditHolds)
-      .set({
-        status: "SETTLED",
-        settledAt: new Date(),
-      })
-      .where(eq(creditHolds.videoUuid, videoUuid));
-
-    const balance = await this.getBalanceInTx(trx, hold.userId);
-    const isImageTask = videoUuid.startsWith("img_");
-    await trx.insert(creditTransactions).values({
-      transNo: `TXN${Date.now()}${nanoid(6)}`,
-      userId: hold.userId,
-      transType: isImageTask
-        ? CreditTransType.IMAGE_CONSUME
-        : CreditTransType.VIDEO_CONSUME,
-      credits: -hold.credits,
-      balanceAfter: balance.availableCredits,
-      videoUuid,
-      holdId: hold.id,
-      remark: isImageTask
-        ? `Image generation settled: ${videoUuid}`
-        : `Video generation settled: ${videoUuid}`,
-    });
+  async settleInTx(trx: any, videoUuid: string): Promise<HoldMutationResult> {
+    return this.finalizeHoldInTx(trx, videoUuid, "SETTLED");
   }
 
   /**
@@ -307,7 +240,19 @@ export class CreditService {
     });
   }
 
-  async releaseInTx(trx: any, videoUuid: string): Promise<void> {
+  async releaseInTx(trx: any, videoUuid: string): Promise<HoldMutationResult> {
+    return this.finalizeHoldInTx(trx, videoUuid, "RELEASED");
+  }
+
+  private async finalizeHoldInTx(
+    trx: any,
+    videoUuid: string,
+    targetStatus: HoldFinalStatus
+  ): Promise<HoldMutationResult> {
+    await trx.execute(
+      sql`SELECT pg_advisory_xact_lock(hashtext(${`credit_hold:${videoUuid}`}))`
+    );
+
     const [hold] = await trx
       .select()
       .from(creditHolds)
@@ -318,53 +263,123 @@ export class CreditService {
       throw new Error(`Hold not found for video: ${videoUuid}`);
     }
 
-    if (hold.status === "RELEASED") {
-      return;
+    if (hold.status === targetStatus) {
+      return {
+        status: targetStatus,
+        changed: false,
+      };
     }
 
     if (hold.status !== "HOLDING") {
-      throw new Error(`Invalid hold status: ${hold.status}`);
+      return {
+        status: hold.status === "SETTLED" ? "SETTLED" : "RELEASED",
+        changed: false,
+      };
     }
 
     const allocation = hold.packageAllocation as PackageAllocation[];
 
-    for (const { packageId, credits } of allocation) {
-      await trx
-        .update(creditPackages)
-        .set({
-          remainingCredits: sql`${creditPackages.remainingCredits} + ${credits}`,
-          frozenCredits: sql`${creditPackages.frozenCredits} - ${credits}`,
-        })
-        .where(
-          and(
-            eq(creditPackages.id, packageId),
-            gte(creditPackages.frozenCredits, credits)
+    if (targetStatus === "SETTLED") {
+      for (const { packageId, credits } of allocation) {
+        const updatedPackage = await trx
+          .update(creditPackages)
+          .set({
+            frozenCredits: sql`${creditPackages.frozenCredits} - ${credits}`,
+          })
+          .where(
+            and(
+              eq(creditPackages.id, packageId),
+              gte(creditPackages.frozenCredits, credits)
+            )
           )
-        );
+          .returning({ id: creditPackages.id });
+
+        if (updatedPackage.length === 0) {
+          throw new Error("Failed to settle frozen credits");
+        }
+
+        const [updatedPkg] = await trx
+          .select()
+          .from(creditPackages)
+          .where(eq(creditPackages.id, packageId))
+          .limit(1);
+
+        if (
+          updatedPkg &&
+          updatedPkg.remainingCredits === 0 &&
+          updatedPkg.frozenCredits === 0
+        ) {
+          await trx
+            .update(creditPackages)
+            .set({ status: CreditPackageStatus.DEPLETED })
+            .where(eq(creditPackages.id, packageId));
+        }
+      }
+    } else {
+      for (const { packageId, credits } of allocation) {
+        const updatedPackage = await trx
+          .update(creditPackages)
+          .set({
+            remainingCredits: sql`${creditPackages.remainingCredits} + ${credits}`,
+            frozenCredits: sql`${creditPackages.frozenCredits} - ${credits}`,
+          })
+          .where(
+            and(
+              eq(creditPackages.id, packageId),
+              gte(creditPackages.frozenCredits, credits)
+            )
+          )
+          .returning({ id: creditPackages.id });
+
+        if (updatedPackage.length === 0) {
+          throw new Error("Failed to release frozen credits");
+        }
+      }
     }
 
     await trx
       .update(creditHolds)
       .set({
-        status: "RELEASED",
+        status: targetStatus,
         settledAt: new Date(),
       })
-      .where(eq(creditHolds.videoUuid, videoUuid));
+      .where(
+        and(
+          eq(creditHolds.videoUuid, videoUuid),
+          eq(creditHolds.status, "HOLDING")
+        )
+      );
 
     const balance = await this.getBalanceInTx(trx, hold.userId);
     const isImageTask = videoUuid.startsWith("img_");
+    const transType =
+      targetStatus === "SETTLED"
+        ? isImageTask
+          ? CreditTransType.IMAGE_CONSUME
+          : CreditTransType.VIDEO_CONSUME
+        : CreditTransType.REFUND;
+
     await trx.insert(creditTransactions).values({
       transNo: `TXN${Date.now()}${nanoid(6)}`,
       userId: hold.userId,
-      transType: CreditTransType.REFUND,
-      credits: 0,
+      transType,
+      credits: targetStatus === "SETTLED" ? -hold.credits : hold.credits,
       balanceAfter: balance.availableCredits,
       videoUuid,
       holdId: hold.id,
       remark: isImageTask
-        ? `Image generation failed, credits released: ${videoUuid}`
-        : `Video generation failed, credits released: ${videoUuid}`,
+        ? targetStatus === "SETTLED"
+          ? `Image generation settled: ${videoUuid}`
+          : `Image generation failed, credits released: ${videoUuid}`
+        : targetStatus === "SETTLED"
+          ? `Video generation settled: ${videoUuid}`
+          : `Video generation failed, credits released: ${videoUuid}`,
     });
+
+    return {
+      status: targetStatus,
+      changed: true,
+    };
   }
 
   /**

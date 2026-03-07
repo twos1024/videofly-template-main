@@ -1,12 +1,18 @@
 import { db } from "@/db";
 import { images } from "@/db/schema";
-import { and, desc, eq, lt } from "drizzle-orm";
+import { and, desc, eq, lt, or } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getStorage } from "@/lib/storage";
 import { getProvider, type ProviderType } from "@/ai";
 import type { VideoTaskResponse } from "@/ai/types";
+import { ApiError } from "@/lib/api/error";
+import { assertRemoteAssetDownloadConfigured } from "@/lib/media-validation";
 import { creditService } from "./credit";
 import { generateSignedCallbackUrl } from "@/ai/utils/callback-signature";
+import {
+  decodeCompositeCursor,
+  encodeCompositeCursor,
+} from "@/lib/pagination-cursor";
 import {
   calculateImageCredits,
   getImageModelConfig,
@@ -54,6 +60,8 @@ export class ImageService {
     if (!modelConfig) {
       throw new Error(`Unsupported image model: ${params.model}`);
     }
+
+    assertRemoteAssetDownloadConfigured();
 
     const creditsRequired = calculateImageCredits(params.model);
     if (creditsRequired <= 0) {
@@ -250,6 +258,7 @@ export class ImageService {
           );
           return {
             status: updated.status,
+            imageUrl: updated.imageUrl || undefined,
             error: updated.errorMessage || undefined,
           };
         }
@@ -268,6 +277,8 @@ export class ImageService {
     if (!result.videoUrl) {
       throw new Error("Missing image URL in completion result");
     }
+
+    assertRemoteAssetDownloadConfigured();
 
     const [image] = await db
       .select()
@@ -306,14 +317,14 @@ export class ImageService {
         .where(eq(images.uuid, imageUuid));
     }
 
-    let uploaded: { url: string; key: string };
+    let uploaded: { url: string; key: string; size: number };
     try {
       const storage = getStorage();
-      const key = `images/${imageUuid}/${Date.now()}.png`;
+      const keyPrefix = `images/${imageUuid}/${Date.now()}`;
       uploaded = await storage.downloadAndUpload({
         sourceUrl: result.videoUrl,
-        key,
-        contentType: "image/png",
+        keyPrefix,
+        kind: "image",
       });
     } catch (error) {
       const message =
@@ -343,13 +354,29 @@ export class ImageService {
         return { status: latest.status, imageUrl: null };
       }
 
-      await creditService.settleInTx(trx, imageUuid);
+      const holdResult = await creditService.settleInTx(trx, imageUuid);
+      if (holdResult.status === "RELEASED") {
+        const [current] = await trx
+          .select({
+            status: images.status,
+            imageUrl: images.imageUrl,
+          })
+          .from(images)
+          .where(eq(images.uuid, imageUuid))
+          .limit(1);
+
+        return {
+          status: current?.status || ImageStatus.FAILED,
+          imageUrl: current?.imageUrl || null,
+        };
+      }
 
       await trx
         .update(images)
         .set({
           status: "COMPLETED",
           imageUrl: uploaded.url,
+          fileSize: uploaded.size,
           completedAt: new Date(),
           updatedAt: new Date(),
         })
@@ -364,7 +391,11 @@ export class ImageService {
   private async tryFailGeneration(
     imageUuid: string,
     errorMessage?: string
-  ): Promise<{ status: string; errorMessage?: string | null }> {
+  ): Promise<{
+    status: string;
+    errorMessage?: string | null;
+    imageUrl?: string | null;
+  }> {
     const failedMessage = errorMessage || "Generation failed";
 
     const finalized = await db.transaction(async (trx) => {
@@ -381,13 +412,30 @@ export class ImageService {
         image.status === ImageStatus.COMPLETED ||
         image.status === ImageStatus.FAILED
       ) {
-        return { status: image.status, errorMessage: image.errorMessage };
+        return {
+          status: image.status,
+          errorMessage: image.errorMessage,
+          imageUrl: image.imageUrl,
+        };
       }
 
-      try {
-        await creditService.releaseInTx(trx, imageUuid);
-      } catch (error) {
-        console.error(`Failed to release image credits for ${imageUuid}:`, error);
+      const holdResult = await creditService.releaseInTx(trx, imageUuid);
+      if (holdResult.status === "SETTLED") {
+        const [current] = await trx
+          .select({
+            status: images.status,
+            errorMessage: images.errorMessage,
+            imageUrl: images.imageUrl,
+          })
+          .from(images)
+          .where(eq(images.uuid, imageUuid))
+          .limit(1);
+
+        return {
+          status: current?.status || ImageStatus.COMPLETED,
+          errorMessage: current?.errorMessage,
+          imageUrl: current?.imageUrl || null,
+        };
       }
 
       await trx
@@ -399,7 +447,11 @@ export class ImageService {
         })
         .where(eq(images.uuid, imageUuid));
 
-      return { status: ImageStatus.FAILED, errorMessage: failedMessage };
+      return {
+        status: ImageStatus.FAILED,
+        errorMessage: failedMessage,
+        imageUrl: null,
+      };
     });
 
     return finalized;
@@ -441,14 +493,30 @@ export class ImageService {
     }
 
     if (options?.cursor) {
-      const [cursorImage] = await db
-        .select({ createdAt: images.createdAt })
-        .from(images)
-        .where(eq(images.uuid, options.cursor))
-        .limit(1);
+      let cursor = null;
 
-      if (cursorImage) {
-        conditions.push(lt(images.createdAt, cursorImage.createdAt));
+      try {
+        cursor = decodeCompositeCursor(options.cursor);
+      } catch {
+        const [legacyCursor] = await db
+          .select({ createdAt: images.createdAt, uuid: images.uuid })
+          .from(images)
+          .where(eq(images.uuid, options.cursor))
+          .limit(1);
+
+        cursor = legacyCursor ?? null;
+      }
+
+      if (!cursor) {
+        throw new ApiError("Invalid cursor", 400);
+      }
+
+      const cursorCondition = or(
+        lt(images.createdAt, cursor.createdAt),
+        and(eq(images.createdAt, cursor.createdAt), lt(images.uuid, cursor.uuid))
+      );
+      if (cursorCondition) {
+        conditions.push(cursorCondition);
       }
     }
 
@@ -456,7 +524,7 @@ export class ImageService {
       .select()
       .from(images)
       .where(and(...conditions))
-      .orderBy(desc(images.createdAt))
+      .orderBy(desc(images.createdAt), desc(images.uuid))
       .limit(limit + 1);
 
     const hasMore = list.length > limit;
@@ -464,7 +532,14 @@ export class ImageService {
 
     return {
       images: list,
-      nextCursor: hasMore ? list[list.length - 1]?.uuid : undefined,
+      nextCursor:
+        hasMore && list.length > 0
+          ? encodeCompositeCursor({
+              createdAt: list[list.length - 1].createdAt,
+              uuid: list[list.length - 1].uuid,
+            })
+          : null,
+      hasMore,
     };
   }
 

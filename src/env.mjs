@@ -15,19 +15,7 @@ const resolvedAppUrl =
 const resolvedAuthSecret =
   process.env.BETTER_AUTH_SECRET ||
   process.env.AUTH_SECRET ||
-  process.env.NEXTAUTH_SECRET ||
-  `videofly-insecure-fallback-secret-${vercelHost || "local"}`;
-
-if (
-  process.env.NODE_ENV === "production" &&
-  !process.env.BETTER_AUTH_SECRET &&
-  !process.env.AUTH_SECRET &&
-  !process.env.NEXTAUTH_SECRET
-) {
-  console.warn(
-    "[env] BETTER_AUTH_SECRET is missing. Using an insecure fallback secret. Set BETTER_AUTH_SECRET in deployment environment."
-  );
-}
+  process.env.NEXTAUTH_SECRET;
 
 export const env = createEnv({
   server: {

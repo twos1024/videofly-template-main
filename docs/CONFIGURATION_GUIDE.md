@@ -52,6 +52,8 @@ DEFAULT_AI_PROVIDER=evolink
 # 回调配置（生产环境必须配置）
 AI_CALLBACK_URL=https://videofly.app/api/v1/video/callback
 CALLBACK_HMAC_SECRET=your_callback_secret_for_hmac
+VIDEO_RECOVERY_SECRET=your_internal_recovery_secret
+REMOTE_ASSET_ALLOWED_HOSTS=assets.example.com,*.cloudfront.net
 
 # ============================================
 # 存储配置（R2/S3）
@@ -88,6 +90,11 @@ NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
 ```
 
 ### ⚠️ 重要说明
+
+- `CALLBACK_HMAC_SECRET` 只用于 AI provider 回调签名校验，不要复用到任何管理接口。
+- `/api/v1/video/recover` 默认关闭；只有配置 `VIDEO_RECOVERY_SECRET` 后才会启用，并且必须使用 `Authorization: Bearer ...` 调用。
+- `REMOTE_ASSET_ALLOWED_HOSTS` 必须列出服务端允许下载的 provider/CDN 域名，支持 `*.example.com` 这种通配格式。
+- `/api/v1/video/events` 使用 Postgres `LISTEN/NOTIFY` 做跨实例事件分发，并显式运行在 Node runtime；如果部署环境不支持长连接，请保留前端轮询作为兜底。
 
 1. **积分配置已迁移**：Creem Product ID 现在直接在 `src/config/pricing-user.ts` 中配置，无需在环境变量中设置
 2. **Secret 生成**：使用 `openssl rand -base64 32` 生成安全的 secret

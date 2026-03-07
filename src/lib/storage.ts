@@ -1,5 +1,10 @@
 import { s3mini } from "s3mini";
 
+import {
+  fetchValidatedRemoteMedia,
+  type MediaKind,
+} from "@/lib/media-validation";
+
 export interface StorageConfig {
   endpoint: string;
   region: string;
@@ -53,25 +58,25 @@ export class Storage {
    */
   async downloadAndUpload(params: {
     sourceUrl: string;
-    key: string;
-    contentType?: string;
-  }): Promise<{ url: string; key: string }> {
-    const response = await fetch(params.sourceUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to download: ${response.statusText}`);
-    }
-
-    const buffer = Buffer.from(await response.arrayBuffer());
-    const contentType =
-      params.contentType ||
-      response.headers.get("content-type") ||
-      "video/mp4";
-
-    return this.uploadFile({
-      key: params.key,
-      body: buffer,
-      contentType,
+    keyPrefix: string;
+    kind: MediaKind;
+  }): Promise<{ url: string; key: string; contentType: string; size: number }> {
+    const media = await fetchValidatedRemoteMedia({
+      sourceUrl: params.sourceUrl,
+      kind: params.kind,
     });
+    const key = `${params.keyPrefix}.${media.extension}`;
+    const uploaded = await this.uploadFile({
+      key,
+      body: media.buffer,
+      contentType: media.contentType,
+    });
+
+    return {
+      ...uploaded,
+      contentType: media.contentType,
+      size: media.size,
+    };
   }
 
   /**

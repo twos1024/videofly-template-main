@@ -336,6 +336,15 @@ export const videos = pgTable(
     userIdx: index("videos_user_id_idx").on(table.userId),
     statusIdx: index("videos_status_idx").on(table.status),
     createdAtIdx: index("videos_created_at_idx").on(table.createdAt),
+    userFeedIdx: index("videos_user_id_deleted_created_at_uuid_idx").on(
+      table.userId,
+      table.isDeleted,
+      table.createdAt,
+      table.uuid
+    ),
+    userStatusFeedIdx: index(
+      "videos_user_id_deleted_status_created_at_uuid_idx"
+    ).on(table.userId, table.isDeleted, table.status, table.createdAt, table.uuid),
   })
 );
 
@@ -371,6 +380,15 @@ export const images = pgTable(
     userIdx: index("images_user_id_idx").on(table.userId),
     statusIdx: index("images_status_idx").on(table.status),
     createdAtIdx: index("images_created_at_idx").on(table.createdAt),
+    userFeedIdx: index("images_user_id_deleted_created_at_uuid_idx").on(
+      table.userId,
+      table.isDeleted,
+      table.createdAt,
+      table.uuid
+    ),
+    userStatusFeedIdx: index(
+      "images_user_id_deleted_status_created_at_uuid_idx"
+    ).on(table.userId, table.isDeleted, table.status, table.createdAt, table.uuid),
   })
 );
 

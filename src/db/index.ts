@@ -44,4 +44,5 @@ export const db =
     typeof drizzle
   >;
 
+export { sql };
 export * from "./schema";

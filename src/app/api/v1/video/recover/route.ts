@@ -1,23 +1,31 @@
 import { NextRequest } from "next/server";
+import { z } from "zod";
 import { db } from "@/db";
 import { videos } from "@/db/schema";
-import { eq, or, sql } from "drizzle-orm";
+import { desc, eq, or } from "drizzle-orm";
 import { getProvider } from "@/ai";
-import { apiSuccess, apiError } from "@/lib/api/response";
+import { ApiError } from "@/lib/api/error";
+import { assertConfiguredBearerSecret } from "@/lib/admin-secret";
+import { apiSuccess, handleApiError } from "@/lib/api/response";
+
+const manualRecoverSchema = z.object({
+  videoUuid: z.string().min(1),
+  videoUrl: z.string().url(),
+  thumbnailUrl: z.string().url().optional(),
+});
 
 /**
  * 恢复卡住的视频任务
- * GET /api/v1/video/recover?secret=YOUR_SECRET
+ * GET /api/v1/video/recover
+ * Authorization: Bearer $VIDEO_RECOVERY_SECRET
  */
 export async function GET(request: NextRequest) {
   try {
-    // 验证管理员密钥
-    const { searchParams } = new URL(request.url);
-    const secret = searchParams.get("secret");
-
-    if (secret !== process.env.CALLBACK_HMAC_SECRET) {
-      return apiError("Unauthorized", 401);
-    }
+    assertConfiguredBearerSecret(
+      request.headers.get("authorization"),
+      process.env.VIDEO_RECOVERY_SECRET,
+      "Video recovery API"
+    );
 
     // 查找所有非完成状态的视频
     const stuckVideos = await db
@@ -30,7 +38,7 @@ export async function GET(request: NextRequest) {
           eq(videos.status, "UPLOADING")
         )
       )
-      .orderBy(sql`"videos"."created_at" DESC`)
+      .orderBy(desc(videos.createdAt), desc(videos.uuid))
       .limit(20);
 
     if (stuckVideos.length === 0) {
@@ -109,32 +117,26 @@ export async function GET(request: NextRequest) {
       results,
     });
   } catch (error) {
-    console.error("Recover API error:", error);
-    return apiError("Internal server error", 500);
+    return handleApiError(error);
   }
 }
 
 /**
  * 手动触发视频完成
- * POST /api/v1/video/recover?secret=YOUR_SECRET
+ * POST /api/v1/video/recover
+ * Authorization: Bearer $VIDEO_RECOVERY_SECRET
  * Body: { videoUuid, videoUrl, thumbnailUrl }
  */
 export async function POST(request: NextRequest) {
   try {
-    // 验证管理员密钥
-    const { searchParams } = new URL(request.url);
-    const secret = searchParams.get("secret");
+    assertConfiguredBearerSecret(
+      request.headers.get("authorization"),
+      process.env.VIDEO_RECOVERY_SECRET,
+      "Video recovery API"
+    );
 
-    if (secret !== process.env.CALLBACK_HMAC_SECRET) {
-      return apiError("Unauthorized", 401);
-    }
-
-    const body = await request.json();
+    const body = manualRecoverSchema.parse(await request.json());
     const { videoUuid, videoUrl, thumbnailUrl } = body;
-
-    if (!videoUuid || !videoUrl) {
-      return apiError("Missing required fields: videoUuid, videoUrl", 400);
-    }
 
     // 获取视频信息
     const [video] = await db
@@ -144,7 +146,7 @@ export async function POST(request: NextRequest) {
       .limit(1);
 
     if (!video) {
-      return apiError("Video not found", 404);
+      throw new ApiError("Video not found", 404);
     }
 
     // 手动触发完成流程
@@ -162,7 +164,6 @@ export async function POST(request: NextRequest) {
       message: "Video recovered successfully",
     });
   } catch (error) {
-    console.error("Recover POST error:", error);
-    return apiError("Internal server error", 500);
+    return handleApiError(error);
   }
 }

@@ -143,6 +143,8 @@ EVOLINK_API_KEY='your-evolink-key'
 KIE_API_KEY='your-kie-key'
 AI_CALLBACK_URL='https://your-domain.com/api/v1/video/callback'
 CALLBACK_HMAC_SECRET='your-callback-secret'
+VIDEO_RECOVERY_SECRET='your-recovery-secret'
+REMOTE_ASSET_ALLOWED_HOSTS='assets.example.com,*.cloudfront.net'
 
 # 计费提供商（creem | stripe）
 NEXT_PUBLIC_BILLING_PROVIDER='creem'
@@ -159,6 +161,10 @@ STRIPE_WEBHOOK_SECRET='your-stripe-webhook-secret'
 RESEND_API_KEY='your-resend-api-key'
 RESEND_FROM='noreply@yourdomain.com'
 ```
+
+`VIDEO_RECOVERY_SECRET` 只用于内部恢复接口，未配置时 `/api/v1/video/recover` 会默认关闭，并且必须通过 `Authorization: Bearer ...` 调用。  
+`REMOTE_ASSET_ALLOWED_HOSTS` 用于限制服务端可下载的 provider/CDN 结果域名，避免回调恢复和任务完成流程被恶意 URL 利用。
+`/api/v1/video/events` 现在依赖 Postgres `LISTEN/NOTIFY` 和 Node runtime；如果部署平台不支持长连接，前端仍会退回 15s 轮询。
 
 ## 🔄 同步模板更新
 
@@ -198,14 +204,16 @@ git checkout upstream/main -- src/components/landing
 1. **备份数据** - 同步前备份你的 `.env.local` 和数据库
 2. **处理冲突** - 如果有冲突，需要手动解决
 3. **环境变量** - 模板更新可能新增环境变量，检查 `.env.example`
-4. **数据库迁移** - 如有 schema 变更，执行 `pnpm db:migrate`
+4. **数据库迁移**
+   - 新库初始化：可以直接执行 `pnpm db:migrate`
+   - 已有线上数据库：优先执行 `pnpm db:push`，不要直接把首个 baseline migration 重放到已有库上
 
 ## 🧩 近期更新（2026-01-26）
 
 - **模型与参数映射统一**：所有 provider 参数转换集中在 `src/ai/model-mapping.ts`，Veo 3.1 高/低质量自动选择对应模型 ID  
 - **生成参数对齐**：首页与工具页统一支持 `mode / imageUrl(s) / outputNumber / generateAudio`，图片上传走 `/api/v1/upload`  
 - **模型能力修正**：Veo 3.1 固定 8s；Wan 2.6 / Seedance 分辨率与质量映射统一  
-- **状态与通知**：SSE + 15s 轮询，生成完成支持浏览器通知与 toast  
+- **状态与通知**：Postgres-backed SSE + 15s 轮询，支持多实例部署下的生成完成通知、浏览器通知与 toast  
 - **My Creations 体验优化**：4:3 卡片、hover 自动播放、错误信息展示在预览区  
 
 ### 2026-02-02

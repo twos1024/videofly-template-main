@@ -127,11 +127,16 @@ export async function handleEvent(event: Stripe.DiscriminatedEvent) {
     const priceId = updatedSub.items.data[0]?.price.id;
     const plan = getSubscriptionPlan(priceId);
     const isCancelling = updatedSub.cancel_at_period_end;
+    const customerId =
+      typeof updatedSub.customer === "string"
+        ? updatedSub.customer
+        : updatedSub.customer.id;
 
     await db
       .update(customers)
       .set({
-        plan: isCancelling ? SubscriptionPlan.FREE : plan || SubscriptionPlan.FREE,
+        plan: plan || SubscriptionPlan.FREE,
+        stripeCustomerId: customerId,
         stripePriceId: priceId,
         stripeSubscriptionId: updatedSub.id,
         stripeCurrentPeriodEnd: new Date(updatedSub.current_period_end * 1000),
@@ -142,5 +147,34 @@ export async function handleEvent(event: Stripe.DiscriminatedEvent) {
       `[Stripe] customer.subscription.updated: userId=${userId}, plan=${plan}, cancelling=${isCancelling}`
     );
   }
+
+  if (event.type === "customer.subscription.deleted") {
+    const deletedSub = event.data.object as Stripe.Subscription;
+    const { userId } = deletedSub.metadata;
+    if (!userId) {
+      throw new Error("Missing user id in deleted subscription metadata");
+    }
+
+    const customerId =
+      typeof deletedSub.customer === "string"
+        ? deletedSub.customer
+        : deletedSub.customer.id;
+
+    await db
+      .update(customers)
+      .set({
+        plan: SubscriptionPlan.FREE,
+        stripeCustomerId: customerId,
+        stripePriceId: null,
+        stripeSubscriptionId: null,
+        stripeCurrentPeriodEnd: new Date(),
+      })
+      .where(eq(customers.authUserId, userId));
+
+    console.log(
+      `[Stripe] customer.subscription.deleted: userId=${userId}, subscriptionId=${deletedSub.id}`
+    );
+  }
+
   console.log("✅ Stripe Webhook Processed");
 }

@@ -6,7 +6,13 @@ import { getModelConfig, calculateModelCredits } from "../config/credits";
 import { getProvider, type ProviderType, type VideoTaskResponse } from "../ai";
 import { creditService } from "./credit";
 import { generateSignedCallbackUrl } from "@/ai/utils/callback-signature";
+import { ApiError } from "@/lib/api/error";
 import { emitVideoEvent } from "@/lib/video-events";
+import { assertRemoteAssetDownloadConfigured } from "@/lib/media-validation";
+import {
+  decodeCompositeCursor,
+  encodeCompositeCursor,
+} from "@/lib/pagination-cursor";
 
 export interface GenerateVideoParams {
   userId: string;
@@ -31,6 +37,16 @@ export interface VideoGenerationResult {
   creditsUsed: number;
 }
 
+async function emitVideoEventSafely(
+  event: Parameters<typeof emitVideoEvent>[0]
+): Promise<void> {
+  try {
+    await emitVideoEvent(event);
+  } catch (error) {
+    console.error("Failed to emit video event:", error);
+  }
+}
+
 export class VideoService {
   private callbackBaseUrl: string;
 
@@ -47,6 +63,8 @@ export class VideoService {
       throw new Error(`Unsupported model: ${params.model}`);
     }
 
+    assertRemoteAssetDownloadConfigured();
+
     const effectiveDuration = params.duration || modelConfig.durations[0] || 5;
 
     const outputNumber = Math.max(1, params.outputNumber ?? 1);
@@ -62,6 +80,8 @@ export class VideoService {
       throw new Error(`Model ${params.model} does not support image-to-video`);
     }
 
+    const selectedProvider =
+      (process.env.DEFAULT_AI_PROVIDER as ProviderType) || modelConfig.provider;
     const videoUuid = `vid_${nanoid(21)}`;
 
     const [videoResult] = await db
@@ -86,7 +106,7 @@ export class VideoService {
         creditsUsed: creditsRequired,
         duration: effectiveDuration,
         aspectRatio: params.aspectRatio || null,
-        provider: modelConfig.provider,
+        provider: selectedProvider,
         updatedAt: new Date(),
       })
       .returning({ uuid: videos.uuid, id: videos.id });
@@ -126,23 +146,19 @@ export class VideoService {
       throw new Error(`Insufficient credits. Required: ${creditsRequired}`);
     }
 
-    // ✅ 支持通过环境变量选择 provider
-    // 优先级: 环境变量 > 模型配置
-    const defaultProvider = (process.env.DEFAULT_AI_PROVIDER as ProviderType) || modelConfig.provider;
-    const provider = getProvider(defaultProvider);
-
     const callbackUrl = this.callbackBaseUrl
       ? generateSignedCallbackUrl(
-        `${this.callbackBaseUrl}/${defaultProvider}`,  // ✅ 使用实际选择的 provider
+        `${this.callbackBaseUrl}/${selectedProvider}`,
         videoResult.uuid
       )
       : undefined;
 
     try {
+      const provider = getProvider(selectedProvider);
       const result = await provider.createTask({
         model: params.model,
         prompt: params.prompt,
-        duration: effectiveDuration,  // ✅ 使用计算后的时长
+        duration: effectiveDuration,
         aspectRatio: params.aspectRatio,
         quality: params.quality,
         imageUrl: params.imageUrl,
@@ -165,7 +181,7 @@ export class VideoService {
       return {
         videoUuid: videoResult.uuid,
         taskId: result.taskId,
-        provider: defaultProvider,  // ✅ 返回实际使用的 provider
+        provider: selectedProvider,
         status: "GENERATING",
         estimatedTime: result.estimatedTime,
         creditsUsed: creditsRequired,
@@ -271,6 +287,7 @@ export class VideoService {
           );
           return {
             status: updated.status,
+            videoUrl: updated.videoUrl || undefined,
             error: updated.errorMessage || undefined,
           };
         }
@@ -327,6 +344,8 @@ export class VideoService {
       throw new Error("Missing video URL in completion result");
     }
 
+    assertRemoteAssetDownloadConfigured();
+
     const [video] = await db
       .select()
       .from(videos)
@@ -373,14 +392,14 @@ export class VideoService {
         );
     }
 
-    let uploaded: { url: string; key: string };
+    let uploaded: { url: string; key: string; size: number };
     try {
       const storage = getStorage();
-      const key = `videos/${videoUuid}/${Date.now()}.mp4`;
+      const keyPrefix = `videos/${videoUuid}/${Date.now()}`;
       uploaded = await storage.downloadAndUpload({
         sourceUrl: result.videoUrl,
-        key,
-        contentType: "video/mp4",
+        keyPrefix,
+        kind: "video",
       });
     } catch (error) {
       const message =
@@ -420,13 +439,31 @@ export class VideoService {
         };
       }
 
-      await creditService.settleInTx(trx, videoUuid);
+      const holdResult = await creditService.settleInTx(trx, videoUuid);
+      if (holdResult.status === "RELEASED") {
+        const [current] = await trx
+          .select({
+            status: videos.status,
+            videoUrl: videos.videoUrl,
+          })
+          .from(videos)
+          .where(eq(videos.uuid, videoUuid))
+          .limit(1);
+
+        return {
+          status: current?.status || VideoStatus.FAILED,
+          videoUrl: current?.videoUrl || null,
+          shouldEmit: false,
+          userId: latest.userId,
+        };
+      }
 
       await trx
         .update(videos)
         .set({
           status: VideoStatus.COMPLETED,
           videoUrl: uploaded.url,
+          fileSize: uploaded.size,
           thumbnailUrl: result.thumbnailUrl || null,
           completedAt: new Date(),
           updatedAt: new Date(),
@@ -442,7 +479,7 @@ export class VideoService {
     });
 
     if (finalized.shouldEmit) {
-      emitVideoEvent({
+      await emitVideoEventSafely({
         userId: finalized.userId,
         videoUuid,
         status: "COMPLETED",
@@ -460,7 +497,11 @@ export class VideoService {
   private async tryFailGeneration(
     videoUuid: string,
     errorMessage?: string
-  ): Promise<{ status: string; errorMessage?: string | null }> {
+  ): Promise<{
+    status: string;
+    errorMessage?: string | null;
+    videoUrl?: string | null;
+  }> {
     const failedMessage = errorMessage || "Generation failed";
 
     const finalized = await db.transaction(async (trx) => {
@@ -478,15 +519,31 @@ export class VideoService {
         return {
           status: video.status,
           errorMessage: video.errorMessage,
+          videoUrl: video.videoUrl,
           shouldEmit: false,
           userId: video.userId,
         };
       }
 
-      try {
-        await creditService.releaseInTx(trx, videoUuid);
-      } catch (error) {
-        console.error(`Failed to release credits for ${videoUuid}:`, error);
+      const holdResult = await creditService.releaseInTx(trx, videoUuid);
+      if (holdResult.status === "SETTLED") {
+        const [current] = await trx
+          .select({
+            status: videos.status,
+            errorMessage: videos.errorMessage,
+            videoUrl: videos.videoUrl,
+          })
+          .from(videos)
+          .where(eq(videos.uuid, videoUuid))
+          .limit(1);
+
+        return {
+          status: current?.status || VideoStatus.COMPLETED,
+          errorMessage: current?.errorMessage,
+          videoUrl: current?.videoUrl || null,
+          shouldEmit: false,
+          userId: video.userId,
+        };
       }
 
       await trx
@@ -501,13 +558,14 @@ export class VideoService {
       return {
         status: VideoStatus.FAILED,
         errorMessage: failedMessage,
+        videoUrl: null,
         shouldEmit: true,
         userId: video.userId,
       };
     });
 
     if (finalized.shouldEmit) {
-      emitVideoEvent({
+      await emitVideoEventSafely({
         userId: finalized.userId,
         videoUuid,
         status: "FAILED",
@@ -518,6 +576,7 @@ export class VideoService {
     return {
       status: finalized.status,
       errorMessage: finalized.errorMessage,
+      videoUrl: finalized.videoUrl,
     };
   }
 
@@ -562,14 +621,30 @@ export class VideoService {
     }
 
     if (options?.cursor) {
-      const [cursorVideo] = await db
-        .select({ createdAt: videos.createdAt })
-        .from(videos)
-        .where(eq(videos.uuid, options.cursor))
-        .limit(1);
+      let cursor = null;
 
-      if (cursorVideo) {
-        conditions.push(lt(videos.createdAt, cursorVideo.createdAt));
+      try {
+        cursor = decodeCompositeCursor(options.cursor);
+      } catch {
+        const [legacyCursor] = await db
+          .select({ createdAt: videos.createdAt, uuid: videos.uuid })
+          .from(videos)
+          .where(eq(videos.uuid, options.cursor))
+          .limit(1);
+
+        cursor = legacyCursor ?? null;
+      }
+
+      if (!cursor) {
+        throw new ApiError("Invalid cursor", 400);
+      }
+
+      const cursorCondition = or(
+        lt(videos.createdAt, cursor.createdAt),
+        and(eq(videos.createdAt, cursor.createdAt), lt(videos.uuid, cursor.uuid))
+      );
+      if (cursorCondition) {
+        conditions.push(cursorCondition);
       }
     }
 
@@ -577,7 +652,7 @@ export class VideoService {
       .select()
       .from(videos)
       .where(and(...conditions))
-      .orderBy(desc(videos.createdAt))
+      .orderBy(desc(videos.createdAt), desc(videos.uuid))
       .limit(limit + 1);
 
     const hasMore = list.length > limit;
@@ -585,7 +660,14 @@ export class VideoService {
 
     return {
       videos: list,
-      nextCursor: hasMore ? list[list.length - 1]?.uuid : undefined,
+      nextCursor:
+        hasMore && list.length > 0
+          ? encodeCompositeCursor({
+              createdAt: list[list.length - 1].createdAt,
+              uuid: list[list.length - 1].uuid,
+            })
+          : null,
+      hasMore,
     };
   }
 

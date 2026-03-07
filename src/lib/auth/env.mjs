@@ -15,8 +15,7 @@ const resolvedAppUrl =
 const resolvedAuthSecret =
   process.env.BETTER_AUTH_SECRET ||
   process.env.AUTH_SECRET ||
-  process.env.NEXTAUTH_SECRET ||
-  `videofly-insecure-fallback-secret-${vercelHost || "local"}`;
+  process.env.NEXTAUTH_SECRET;
 
 export const env = createEnv({
   server: {

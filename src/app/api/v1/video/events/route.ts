@@ -1,9 +1,13 @@
 import { NextRequest } from "next/server";
 import { requireAuth } from "@/lib/api/auth";
-import { onVideoEvent } from "@/lib/video-events";
+import { initializeVideoEvents, onVideoEvent } from "@/lib/video-events";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const user = await requireAuth(request);
+  await initializeVideoEvents();
   const encoder = new TextEncoder();
 
   let cleanup: (() => void) | null = null;
