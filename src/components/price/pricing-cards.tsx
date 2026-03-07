@@ -4,7 +4,7 @@ import { useState } from "react";
 import Balancer from "react-wrap-balancer";
 import { useTranslations, useLocale } from "next-intl";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import * as Icons from "@/components/ui/icons";
 import { Switch } from "@/components/ui/switch";
 
@@ -12,7 +12,6 @@ import { BillingFormButton } from "@/components/price/billing-form-button";
 import { priceDataMap, type SubscriptionPlanTranslation } from "@/config/price/price-data";
 import { useSigninModal } from "@/hooks/use-signin-modal";
 import { UserSubscriptionPlan } from "@/types";
-import { LocaleLink } from "@/i18n/navigation";
 
 interface PricingCardsProps {
   userId?: string;
@@ -29,6 +28,9 @@ export function PricingCards({
   const [isYearly, setIsYearly] = useState<boolean>(isYearlyDefault);
   const signInModal = useSigninModal();
   const pricingData = priceDataMap[locale] || priceDataMap.en;
+  const gridClassName =
+    pricingData.length > 2 ? "md:grid-cols-3 lg:grid-cols-3" : "md:grid-cols-2 lg:grid-cols-2";
+
   const toggleBilling = () => {
     setIsYearly(!isYearly);
   };
@@ -54,7 +56,7 @@ export function PricingCards({
         <span>{t('annual_bill')}</span>
       </div>
 
-      <div className="mx-auto grid max-w-screen-lg gap-5 bg-inherit py-5 md:grid-cols-3 lg:grid-cols-3">
+      <div className={`mx-auto grid max-w-screen-lg gap-5 bg-inherit py-5 ${gridClassName}`}>
         {pricingData.map((offer: SubscriptionPlanTranslation) => (
           <div
             className="relative flex flex-col overflow-hidden rounded-xl border"
@@ -114,7 +116,7 @@ export function PricingCards({
                   ))}
               </ul>
 
-              {userId && subscriptionPlan ? (
+              {userId ? (
                 <BillingFormButton
                   year={isYearly}
                   offer={offer}

@@ -1,8 +1,10 @@
 import { getToolPageConfig } from "@/config/tool-pages";
 import { ToolPageLayout } from "@/components/tool/tool-page-layout";
+import { enableImageGeneration } from "@/config/features";
 import type { Locale } from "@/config/i18n-config";
 import { buildAlternates, resolveOgImage } from "@/lib/seo";
 import { siteConfig } from "@/config/site";
+import { notFound } from "next/navigation";
 
 interface ReferenceToVideoPageProps {
   params: Promise<{
@@ -44,6 +46,10 @@ export async function generateMetadata({
 }
 
 export default async function ReferenceToVideoPage({ params }: ReferenceToVideoPageProps) {
+  if (!enableImageGeneration) {
+    notFound();
+  }
+
   const config = getToolPageConfig("reference-to-video");
   const { locale } = await params;
   return (

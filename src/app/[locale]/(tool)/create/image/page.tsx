@@ -1,12 +1,12 @@
-import { Metadata } from "next";
 import { FreeImageGenerator } from "@/components/template/free-image-generator";
-
-export const metadata: Metadata = {
-  title: "AI 图片生成 - PixelMuse",
-  description: "自由输入描述，AI 生成精美图片",
-};
+import { notFound } from "next/navigation";
+import { enableImageGeneration } from "@/config/features";
 
 export default function FreeImagePage() {
+  if (!enableImageGeneration) {
+    notFound();
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">

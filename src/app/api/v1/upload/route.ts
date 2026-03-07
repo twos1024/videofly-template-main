@@ -2,6 +2,7 @@ import { nanoid } from "nanoid";
 
 import { requireAuth } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/error";
+import { assertRateLimit, getClientIp } from "@/lib/api/rate-limit";
 import { handleApiError, apiSuccess } from "@/lib/api/response";
 import {
   MAX_UPLOAD_IMAGE_BYTES,
@@ -12,6 +13,21 @@ import { getStorage } from "@/lib/storage";
 export async function POST(request: Request) {
   try {
     const user = await requireAuth(request);
+    const clientIp = getClientIp(request);
+
+    assertRateLimit({
+      key: `upload:user:${user.id}`,
+      limit: 20,
+      windowMs: 60_000,
+      message: "Too many upload requests",
+    });
+    assertRateLimit({
+      key: `upload:ip:${clientIp}`,
+      limit: 60,
+      windowMs: 60_000,
+      message: "Too many upload requests",
+    });
+
     const formData = await request.formData();
     const file = formData.get("file");
 

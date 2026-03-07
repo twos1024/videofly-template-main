@@ -1,13 +1,11 @@
 import { NextRequest } from "next/server";
 import { videoService } from "@/services/video";
 import { requireAuth } from "@/lib/api/auth";
+import { assertRateLimit, getClientIp } from "@/lib/api/rate-limit";
 import { apiSuccess, handleApiError } from "@/lib/api/response";
 import { z } from "zod";
 // Import proxy configuration for fetch requests
 import "@/lib/proxy-config";
-
-// TODO: Add rate limiting before production deployment
-// Recommended: @upstash/ratelimit with Redis, 10 req/min per user
 
 const generateSchema = z.object({
   prompt: z.string().min(1).max(5000),
@@ -25,6 +23,21 @@ const generateSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth(request);
+    const clientIp = getClientIp(request);
+
+    assertRateLimit({
+      key: `video-generate:user:${user.id}`,
+      limit: 5,
+      windowMs: 60_000,
+      message: "Too many video generation requests",
+    });
+    assertRateLimit({
+      key: `video-generate:ip:${clientIp}`,
+      limit: 20,
+      windowMs: 60_000,
+      message: "Too many video generation requests",
+    });
+
     const body = await request.json();
     const data = generateSchema.parse(body);
 

@@ -11,7 +11,7 @@ import type { SubscriptionPlan, UserSubscriptionPlan } from "@/types";
 
 interface BillingFormButtonProps {
   offer: SubscriptionPlan;
-  subscriptionPlan: UserSubscriptionPlan;
+  subscriptionPlan?: UserSubscriptionPlan;
   year: boolean;
 }
 
@@ -54,7 +54,7 @@ export function BillingFormButton({
         t("no_products")
       ) : (
         <>
-          {subscriptionPlan.stripePriceId
+          {subscriptionPlan?.stripePriceId
             ? t('manage_subscription')
             : t('upgrade')}
         </>

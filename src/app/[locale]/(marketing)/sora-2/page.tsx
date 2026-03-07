@@ -47,16 +47,16 @@ export default async function ModelPage({ params }: ModelPageProps) {
         </p>
         <div className="flex justify-center gap-4">
           <a
-            href={`/${locale}/image-to-video`}
+            href={`/${locale}/create/video`}
             className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
-            Try Image to Video
+            Try Video Generator
           </a>
           <a
-            href={`/${locale}/text-to-video`}
+            href={`/${locale}/pricing`}
             className="px-6 py-3 border border-border rounded-lg hover:bg-accent transition-colors"
           >
-            Try Text to Video
+            View Pricing
           </a>
         </div>
       </div>

@@ -30,6 +30,7 @@ import { GeneratorPanel, type GeneratorData } from "@/components/tool/generator-
 import { uploadImage } from "@/lib/video-api";
 import { ToolLandingPage } from "@/components/tool/tool-landing-page";
 import { VideoHistoryPanel } from "@/components/tool/video-history-panel";
+import { enableRealtimeVideoEvents } from "@/config/features";
 import { toast } from "sonner";
 
 const TOOL_PREFILL_KEY = "videofly_tool_prefill";
@@ -364,6 +365,7 @@ export function ToolPageLayout({
 
   // SSE: listen for backend completion events
   useEffect(() => {
+    if (!enableRealtimeVideoEvents) return;
     if (!user?.id) return;
     if (typeof window === "undefined" || !("EventSource" in window)) return;
 

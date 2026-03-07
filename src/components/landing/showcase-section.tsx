@@ -7,8 +7,8 @@ import { useTranslations } from "next-intl";
 
 import { BlurFade } from "@/components/magicui/blur-fade";
 import { cn } from "@/components/ui";
-import { SCENE_TEMPLATES } from "@/config/template-data";
 import { localizeTemplate } from "@/hooks/use-localized-template";
+import { getAllTemplates } from "@/lib/template-utils";
 
 type CategoryKey = "all" | "ecommerce" | "social-media" | "business" | "personal";
 
@@ -41,6 +41,7 @@ export function ShowcaseSection() {
   const tTemplates = useTranslations("Templates");
   const tData = useTranslations("TemplateData");
   const [activeTab, setActiveTab] = useState<CategoryKey>("all");
+  const templates = getAllTemplates();
 
   const TABS: { key: CategoryKey; label: string }[] = [
     { key: "all", label: t("tabAll") },
@@ -64,8 +65,8 @@ export function ShowcaseSection() {
 
   const filteredTemplates =
     activeTab === "all"
-      ? SCENE_TEMPLATES.slice(0, 8)
-      : SCENE_TEMPLATES.filter((tmpl) => tmpl.category === activeTab).slice(0, 8);
+      ? templates.slice(0, 8)
+      : templates.filter((tmpl) => tmpl.category === activeTab).slice(0, 8);
 
   return (
     <section className="relative py-24 md:py-32 overflow-hidden">

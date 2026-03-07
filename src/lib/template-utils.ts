@@ -1,25 +1,28 @@
 import type { SceneTemplate, TemplateCategory } from "@/config/templates";
+import { isTemplateEnabled } from "@/config/features";
 import { SCENE_TEMPLATES } from "@/config/template-data";
+
+const AVAILABLE_TEMPLATES = SCENE_TEMPLATES.filter(isTemplateEnabled);
 
 /**
  * 按分类获取模板
  */
 export function getTemplatesByCategory(category: TemplateCategory): SceneTemplate[] {
-  return SCENE_TEMPLATES.filter((t) => t.category === category);
+  return AVAILABLE_TEMPLATES.filter((t) => t.category === category);
 }
 
 /**
  * 获取全部模板
  */
 export function getAllTemplates(): SceneTemplate[] {
-  return SCENE_TEMPLATES;
+  return AVAILABLE_TEMPLATES;
 }
 
 /**
  * 获取推荐模板 (popular=true)
  */
 export function getPopularTemplates(): SceneTemplate[] {
-  return SCENE_TEMPLATES.filter((t) => t.popular);
+  return AVAILABLE_TEMPLATES.filter((t) => t.popular);
 }
 
 /**
@@ -27,7 +30,7 @@ export function getPopularTemplates(): SceneTemplate[] {
  */
 export function searchTemplates(keyword: string): SceneTemplate[] {
   const lower = keyword.toLowerCase();
-  return SCENE_TEMPLATES.filter(
+  return AVAILABLE_TEMPLATES.filter(
     (t) =>
       t.name.toLowerCase().includes(lower) ||
       t.description.toLowerCase().includes(lower) ||
@@ -39,14 +42,14 @@ export function searchTemplates(keyword: string): SceneTemplate[] {
  * 根据 ID 获取单个模板
  */
 export function getTemplateById(id: string): SceneTemplate | null {
-  return SCENE_TEMPLATES.find((t) => t.id === id) ?? null;
+  return AVAILABLE_TEMPLATES.find((t) => t.id === id) ?? null;
 }
 
 /**
  * 按类型过滤模板
  */
 export function getTemplatesByType(type: "image" | "video"): SceneTemplate[] {
-  return SCENE_TEMPLATES.filter((t) => t.type === type);
+  return AVAILABLE_TEMPLATES.filter((t) => t.type === type);
 }
 
 /**

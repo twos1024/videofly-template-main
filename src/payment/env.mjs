@@ -1,7 +1,7 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import * as z from "zod";
 
-const billingProvider = process.env.NEXT_PUBLIC_BILLING_PROVIDER || "creem";
+const billingProvider = process.env.NEXT_PUBLIC_BILLING_PROVIDER || "stripe";
 const isStripeProvider = billingProvider === "stripe";
 const stripeRequiredMessage =
   "Stripe billing selected: set STRIPE_API_KEY";

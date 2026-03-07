@@ -3,6 +3,8 @@
 // 面向新手用户的场景化导航
 // ============================================
 
+import { enableImageGeneration } from "./features";
+
 export interface NavItem {
   id: string;
   titleKey: string;
@@ -30,12 +32,16 @@ export const sidebarNavigation: NavGroup[] = [
         href: "/create",
         icon: "LayoutGrid",
       },
-      {
-        id: "image",
-        titleKey: "nav.image",
-        href: "/create/image",
-        icon: "Image",
-      },
+      ...(enableImageGeneration
+        ? [
+            {
+              id: "image",
+              titleKey: "nav.image",
+              href: "/create/image",
+              icon: "Image",
+            },
+          ]
+        : []),
       {
         id: "video",
         titleKey: "nav.video",
@@ -92,12 +98,16 @@ export const headerTools = [
     href: "/create",
     icon: "LayoutGrid",
   },
-  {
-    id: "image",
-    titleKey: "nav.image",
-    href: "/create/image",
-    icon: "Image",
-  },
+  ...(enableImageGeneration
+    ? [
+        {
+          id: "image",
+          titleKey: "nav.image",
+          href: "/create/image",
+          icon: "Image",
+        },
+      ]
+    : []),
   {
     id: "video",
     titleKey: "nav.video",

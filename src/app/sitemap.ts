@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next";
+import { enableImageGeneration } from "@/config/features";
 import { i18n } from "@/config/i18n-config";
 import { siteConfig } from "@/config/site";
 
@@ -14,9 +15,13 @@ const PUBLIC_ROUTES: PublicRoute[] = [
   { path: "", priority: 1.0, changeFrequency: "daily" },
   { path: "pricing", priority: 0.9, changeFrequency: "weekly" },
   { path: "create", priority: 0.8, changeFrequency: "weekly" },
-  { path: "image-to-video", priority: 0.7, changeFrequency: "weekly" },
   { path: "text-to-video", priority: 0.7, changeFrequency: "weekly" },
-  { path: "reference-to-video", priority: 0.7, changeFrequency: "weekly" },
+  ...(enableImageGeneration
+    ? [
+        { path: "image-to-video", priority: 0.7, changeFrequency: "weekly" as const },
+        { path: "reference-to-video", priority: 0.7, changeFrequency: "weekly" as const },
+      ]
+    : []),
   { path: "sora-2", priority: 0.7, changeFrequency: "weekly" },
   { path: "veo-3-1", priority: 0.7, changeFrequency: "weekly" },
   { path: "wan-2-6", priority: 0.7, changeFrequency: "weekly" },

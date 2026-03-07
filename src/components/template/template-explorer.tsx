@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import { TemplateGrid } from "./template-grid";
 import { TemplateCategoryTabs } from "./template-category-tabs";
 import { type TemplateCategory } from "@/config/templates";
-import { SCENE_TEMPLATES } from "@/config/template-data";
 import { localizeTemplate } from "@/hooks/use-localized-template";
+import { getAllTemplates } from "@/lib/template-utils";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
@@ -15,9 +15,10 @@ export function TemplateExplorer() {
   const tData = useTranslations("TemplateData");
   const [category, setCategory] = useState<TemplateCategory | "all">("all");
   const [search, setSearch] = useState("");
+  const templates = getAllTemplates();
 
   const filteredTemplates = useMemo(() => {
-    let result = SCENE_TEMPLATES;
+    let result = templates;
     if (category !== "all") {
       result = result.filter((tmpl) => tmpl.category === category);
     }
@@ -33,7 +34,7 @@ export function TemplateExplorer() {
       });
     }
     return result;
-  }, [category, search, tData]);
+  }, [category, search, tData, templates]);
 
   return (
     <div className="space-y-6">
