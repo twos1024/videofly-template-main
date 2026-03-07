@@ -1,156 +1,78 @@
 "use client";
 
-import { LocaleLink as Link } from "@/i18n/navigation";
-import { ShoppingBag, Share2, Briefcase, Palette, ArrowRight, Sparkles } from "lucide-react";
+import { Play, Sparkles, WandSparkles, Zap } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { BlurFade } from "@/components/magicui/blur-fade";
-import { GridPattern } from "@/components/magicui/grid-pattern";
+import { Meteors } from "@/components/magicui/meteors";
+import { HeroPromptStudio } from "@/components/landing/hero-prompt-studio";
 import { cn } from "@/components/ui";
 
-const SCENE_CATEGORY_CONFIGS = [
-  {
-    icon: ShoppingBag,
-    titleKey: "categoryEcommerce" as const,
-    descKey: "categoryEcommerceDesc" as const,
-    color: "text-emerald-600 dark:text-emerald-400",
-    bgColor: "bg-emerald-50 dark:bg-emerald-950/40",
-    borderColor: "border-emerald-200 dark:border-emerald-800",
-  },
-  {
-    icon: Share2,
-    titleKey: "categorySocial" as const,
-    descKey: "categorySocialDesc" as const,
-    color: "text-sky-600 dark:text-sky-400",
-    bgColor: "bg-sky-50 dark:bg-sky-950/40",
-    borderColor: "border-sky-200 dark:border-sky-800",
-  },
-  {
-    icon: Briefcase,
-    titleKey: "categoryBusiness" as const,
-    descKey: "categoryBusinessDesc" as const,
-    color: "text-violet-600 dark:text-violet-400",
-    bgColor: "bg-violet-50 dark:bg-violet-950/40",
-    borderColor: "border-violet-200 dark:border-violet-800",
-  },
-  {
-    icon: Palette,
-    titleKey: "categoryPersonal" as const,
-    descKey: "categoryPersonalDesc" as const,
-    color: "text-rose-600 dark:text-rose-400",
-    bgColor: "bg-rose-50 dark:bg-rose-950/40",
-    borderColor: "border-rose-200 dark:border-rose-800",
-  },
-];
+const HERO_FEATURES = [
+  { key: "speed", icon: Zap },
+  { key: "ease", icon: Play },
+  { key: "ai", icon: WandSparkles },
+] as const;
 
 export function HeroSection() {
   const t = useTranslations("Hero");
 
   return (
-    <section className="relative min-h-[90vh] overflow-hidden flex items-center">
-      {/* 背景渐变 */}
-      <div className="absolute inset-0 -z-20">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,_hsl(var(--primary)/0.15),_transparent)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_80%_100%,_hsl(var(--primary)/0.08),_transparent)]" />
-      </div>
-
-      {/* 网格背景 */}
-      <GridPattern
-        width={40}
-        height={40}
-        className={cn(
-          "-z-10 opacity-40",
-          "[mask-image:radial-gradient(ellipse_80%_70%_at_50%_30%,black,transparent)]"
-        )}
+    <section className="relative overflow-hidden bg-[#010805] text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(19,157,77,0.24),transparent_28%),radial-gradient(circle_at_20%_30%,rgba(10,72,43,0.4),transparent_30%),radial-gradient(circle_at_80%_15%,rgba(8,59,35,0.24),transparent_24%),linear-gradient(180deg,#020804_0%,#021009_44%,#020805_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(29,185,84,0.06),transparent)] opacity-60" />
+      <Meteors
+        number={14}
+        minDelay={0.4}
+        maxDelay={1.8}
+        minDuration={5}
+        maxDuration={12}
+        angle={202}
+        className="bg-white/45"
       />
 
-      <div className="container mx-auto px-4 py-20 md:py-28">
-        <div className="flex flex-col items-center gap-12">
-          {/* 顶部徽章 */}
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-background" />
+
+      <div className="container relative mx-auto px-4 pb-20 pt-24 md:pb-28 md:pt-32">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-8 text-center">
           <BlurFade delay={0.05} inView>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-primary">{t("badge")}</span>
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/18 bg-emerald-500/10 px-5 py-2.5 text-sm text-emerald-300 shadow-[0_0_0_1px_rgba(16,185,129,0.08)] backdrop-blur-xl">
+              <Sparkles className="h-4 w-4" />
+              <span>{t("badge")}</span>
             </div>
           </BlurFade>
 
-          {/* 主标题 */}
-          <BlurFade delay={0.1} inView>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-center max-w-4xl leading-[1.1]">
-              {t("titleLine1")}
-              <span className="text-primary">{t("titleLine2")}</span>
+          <BlurFade delay={0.12} inView>
+            <h1 className="max-w-5xl text-balance text-5xl font-semibold tracking-tight text-white drop-shadow-[0_6px_22px_rgba(0,0,0,0.45)] sm:text-6xl md:text-7xl lg:text-[5.6rem] lg:leading-[0.96]">
+              {t("title")}
             </h1>
           </BlurFade>
 
-          {/* 副标题 */}
-          <BlurFade delay={0.2} inView>
-            <p className="text-lg md:text-xl text-muted-foreground text-center max-w-2xl leading-relaxed">
+          <BlurFade delay={0.18} inView>
+            <p className="max-w-4xl text-balance text-lg leading-8 text-white/62 md:text-[1.75rem] md:leading-[1.65]">
               {t("description")}
             </p>
           </BlurFade>
 
-          {/* CTA 按钮 */}
-          <BlurFade delay={0.3} inView>
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <Link
-                href="/create"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-primary text-primary-foreground font-semibold text-base hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25"
-              >
-                {t("startCreating")}
-                <ArrowRight className="h-5 w-5" />
-              </Link>
-              <p className="text-sm text-muted-foreground">{t("creditsHint")}</p>
+          <BlurFade delay={0.24} inView>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {HERO_FEATURES.map(({ key, icon: Icon }) => (
+                <div
+                  key={key}
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm backdrop-blur-xl md:text-base",
+                    "border-white/10 bg-white/[0.06] text-white/78 shadow-[0_12px_36px_rgba(0,0,0,0.18)]"
+                  )}
+                >
+                  <Icon className="h-4 w-4 text-emerald-300" />
+                  <span>{t(`featurePills.${key}`)}</span>
+                </div>
+              ))}
             </div>
           </BlurFade>
 
-          {/* 场景分类卡片 */}
-          <BlurFade delay={0.4} inView>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-4xl">
-              {SCENE_CATEGORY_CONFIGS.map((category, idx) => {
-                const Icon = category.icon;
-                const title = t(category.titleKey);
-                return (
-                  <BlurFade key={category.titleKey} delay={0.45 + idx * 0.08} inView>
-                    <Link href="/create" className="block group">
-                      <div
-                        className={cn(
-                          "p-4 rounded-2xl border transition-all duration-300",
-                          "hover:shadow-md hover:-translate-y-0.5",
-                          category.bgColor,
-                          category.borderColor
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "w-10 h-10 rounded-xl flex items-center justify-center mb-3",
-                            "bg-white/80 dark:bg-black/20"
-                          )}
-                        >
-                          <Icon className={cn("h-5 w-5", category.color)} />
-                        </div>
-                        <h3 className="font-semibold text-sm text-foreground mb-1">
-                          {title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {t(category.descKey)}
-                        </p>
-                      </div>
-                    </Link>
-                  </BlurFade>
-                );
-              })}
-            </div>
-          </BlurFade>
-
-          {/* 底部数据 */}
-          <BlurFade delay={0.7} inView>
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <span>{t("stat1")}</span>
-              <span className="w-1 h-1 rounded-full bg-border" />
-              <span>{t("stat2")}</span>
-              <span className="w-1 h-1 rounded-full bg-border" />
-              <span>{t("stat3")}</span>
-            </div>
+          <BlurFade delay={0.32} inView className="w-full">
+            <HeroPromptStudio />
           </BlurFade>
         </div>
       </div>

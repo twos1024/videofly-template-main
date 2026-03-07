@@ -11,27 +11,76 @@
 
 import dotenv from "dotenv";
 import { s3mini } from "s3mini";
-import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 // 加载环境变量
 const envPath = resolve(process.cwd(), ".env.local");
 dotenv.config({ path: envPath });
 
+const PLACEHOLDER_HINT =
+  "请把 .env.local 里的 STORAGE_* 示例值替换成真实的 R2/S3 配置。";
+
+function looksLikePlaceholder(value) {
+  const normalized = value.trim().toLowerCase();
+
+  return (
+    normalized.includes("<") ||
+    normalized.includes(">") ||
+    normalized.includes("replace_with") ||
+    normalized.includes("your-domain") ||
+    normalized.includes("your-bucket") ||
+    normalized.includes("xxxxxxxx")
+  );
+}
+
+function validateUrlConfig(value, envName) {
+  if (!value?.trim()) {
+    throw new Error(`${envName} 未配置`);
+  }
+
+  if (looksLikePlaceholder(value)) {
+    throw new Error(`${envName} 仍然是示例占位值。${PLACEHOLDER_HINT}`);
+  }
+
+  const candidate = /^(https?:)?\/\//i.test(value) ? value : `https://${value}`;
+
+  try {
+    new URL(candidate);
+  } catch {
+    throw new Error(`${envName} 不是合法 URL: ${value}`);
+  }
+
+  return value.replace(/\/$/, "");
+}
+
+function validateBucket(value) {
+  const bucket = value?.trim();
+  if (!bucket) {
+    throw new Error("STORAGE_BUCKET 未配置");
+  }
+  if (looksLikePlaceholder(bucket)) {
+    throw new Error(`STORAGE_BUCKET 仍然是示例占位值。${PLACEHOLDER_HINT}`);
+  }
+  if (!/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/.test(bucket)) {
+    throw new Error("STORAGE_BUCKET 不是合法的 S3/R2 bucket 名称");
+  }
+  return bucket;
+}
+
 async function testStorageConnection() {
   console.log("🔍 开始测试 R2 存储桶连接...\n");
 
   try {
     // 读取环境变量
-    const endpoint = process.env.STORAGE_ENDPOINT;
+    const rawEndpoint = process.env.STORAGE_ENDPOINT;
     const accessKeyId = process.env.STORAGE_ACCESS_KEY;
     const secretAccessKey = process.env.STORAGE_SECRET_KEY;
-    const bucket = process.env.STORAGE_BUCKET;
-    const publicDomain = process.env.STORAGE_DOMAIN;
+    const rawBucket = process.env.STORAGE_BUCKET;
+    const rawPublicDomain = process.env.STORAGE_DOMAIN;
 
     // 验证配置
     console.log("1️⃣ 验证存储配置...");
-    if (!endpoint || !accessKeyId || !secretAccessKey || !bucket) {
+    if (!rawEndpoint || !accessKeyId || !secretAccessKey || !rawBucket) {
       console.error("   ❌ 缺少必需的环境变量\n");
       console.log("💡 请确保 .env.local 文件中配置了以下变量:");
       console.log("   - STORAGE_ENDPOINT");
@@ -42,14 +91,20 @@ async function testStorageConnection() {
 
       // 显示当前已配置的变量（隐藏敏感信息）
       console.log("📋 当前配置:");
-      console.log(`   STORAGE_ENDPOINT: ${endpoint ? "✅ 已配置" : "❌ 未配置"}`);
+      console.log(`   STORAGE_ENDPOINT: ${rawEndpoint ? "✅ 已配置" : "❌ 未配置"}`);
       console.log(`   STORAGE_ACCESS_KEY: ${accessKeyId ? "✅ 已配置" : "❌ 未配置"}`);
       console.log(`   STORAGE_SECRET_KEY: ${secretAccessKey ? "✅ 已配置" : "❌ 未配置"}`);
-      console.log(`   STORAGE_BUCKET: ${bucket ? "✅ 已配置" : "❌ 未配置"}`);
-      console.log(`   STORAGE_DOMAIN: ${publicDomain ? "✅ 已配置" : "⚪ 未设置"}`);
+      console.log(`   STORAGE_BUCKET: ${rawBucket ? "✅ 已配置" : "❌ 未配置"}`);
+      console.log(`   STORAGE_DOMAIN: ${rawPublicDomain ? "✅ 已配置" : "⚪ 未设置"}`);
 
       process.exit(1);
     }
+
+    const endpoint = validateUrlConfig(rawEndpoint, "STORAGE_ENDPOINT");
+    const bucket = validateBucket(rawBucket);
+    const publicDomain = rawPublicDomain
+      ? validateUrlConfig(rawPublicDomain, "STORAGE_DOMAIN")
+      : undefined;
 
     console.log("   ✅ 环境变量配置完整");
     console.log(`   📍 Endpoint: ${endpoint}`);
@@ -58,7 +113,7 @@ async function testStorageConnection() {
 
     // 创建 S3 客户端
     console.log("2️⃣ 初始化 S3 客户端...");
-    const endpointWithBucket = `${endpoint.replace(/\/$/, "")}/${bucket}`;
+    const endpointWithBucket = `${endpoint}/${bucket}`;
     const client = new s3mini({
       endpoint: endpointWithBucket,
       region: process.env.STORAGE_REGION || "auto",
@@ -87,7 +142,7 @@ async function testStorageConnection() {
 
     // 构建公开 URL
     const publicUrl = publicDomain
-      ? `${publicDomain.replace(/\/$/, "")}/${testKey}`
+      ? `${publicDomain}/${testKey}`
       : `${endpointWithBucket}/${testKey}`;
 
     console.log("4️⃣ 测试公开访问...");

@@ -58,6 +58,8 @@ interface GeneratorPanelProps {
   initialAspectRatio?: string;
   initialQuality?: string;
   initialImageUrl?: string;
+  initialImageFile?: File;
+  allowUnifiedInput?: boolean;
 }
 
 export interface GeneratorData {
@@ -84,6 +86,8 @@ export function GeneratorPanel({
   initialAspectRatio,
   initialQuality,
   initialImageUrl,
+  initialImageFile,
+  allowUnifiedInput = false,
 }: GeneratorPanelProps) {
   const t = useTranslations("ToolPage");
   const models = getAvailableModels();
@@ -92,7 +96,7 @@ export function GeneratorPanel({
   const [duration, setDuration] = useState(initialDuration || 10);
   const [aspectRatio, setAspectRatio] = useState(initialAspectRatio || "16:9");
   const [quality, setQuality] = useState(initialQuality || "standard");
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(initialImageFile || null);
   const [imageUrl, setImageUrl] = useState<string | null>(initialImageUrl || null);
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
 
@@ -102,11 +106,16 @@ export function GeneratorPanel({
     let filtered = allowList
       ? models.filter((m) => availableModelIds!.includes(m.id))
       : models;
-    if (toolType === "image-to-video" || toolType === "reference-to-video") {
+    const needsImageCapableModel =
+      toolType === "image-to-video" ||
+      toolType === "reference-to-video" ||
+      (allowUnifiedInput && Boolean(imageFile || imageUrl));
+
+    if (needsImageCapableModel) {
       filtered = filtered.filter((m) => m.supportImageToVideo);
     }
     return filtered;
-  }, [toolType, models, availableModelIds]);
+  }, [toolType, models, availableModelIds, allowUnifiedInput, imageFile, imageUrl]);
 
   const currentModel = useMemo(
     () => availableModels.find((m) => m.id === selectedModel) || availableModels[0],
@@ -187,10 +196,13 @@ export function GeneratorPanel({
     if (initialPrompt && !prompt) {
       setPrompt(initialPrompt);
     }
+    if (initialImageFile && !imageFile && !imageUrl) {
+      setImageFile(initialImageFile);
+    }
     if (initialImageUrl && !imageFile && !imageUrl) {
       setImageUrl(initialImageUrl);
     }
-  }, [initialPrompt, initialImageUrl, prompt, imageFile, imageUrl]);
+  }, [initialPrompt, initialImageUrl, initialImageFile, prompt, imageFile, imageUrl]);
 
   useEffect(() => {
     if (!currentModel) return;
@@ -264,6 +276,11 @@ export function GeneratorPanel({
   const canSubmit = prompt.trim().length > 0 &&
     (!((toolType !== "text-to-video") && !imageFile && !imageUrl)) &&
     !isLoading;
+
+  const showImageUploader =
+    toolType === "image-to-video" ||
+    toolType === "reference-to-video" ||
+    allowUnifiedInput;
 
 
   // Get page title
@@ -362,8 +379,7 @@ export function GeneratorPanel({
           </div>
 
           {/* Image Upload (for image-to-video) */}
-          {(toolType === "image-to-video" || toolType === "reference-to-video") &&
-            currentModel?.supportImageToVideo && (
+          {showImageUploader && (
               <div>
                 <SectionLabel required={toolType === "image-to-video"}>
                   {toolType === "reference-to-video" ? t("generator.referenceImage") : t("generator.imageSource")}

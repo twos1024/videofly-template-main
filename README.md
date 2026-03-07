@@ -1,17 +1,17 @@
 # VideoFly 🎬
 
-一个生产级 AI 视频生成 SaaS 模板，基于 Next.js 15 构建，支持 Sora 2、Veo 3.1 等先进 AI 模型。
+一个面向快速上线的 AI 视频生成 SaaS 模板，基于 Next.js 15 构建，支持 Sora 2、Veo 3.1、Wan 2.6 等模型。
 
-> 本模板帮助你在几分钟内搭建自己的 AI 视频生成平台，包含完整的用户认证、积分系统、支付集成和精美的 UI 界面。
+> 当前仓库默认收敛为 `Stripe-only + video-only + polling-only` 的 MVP 路线，便于直接部署到 Vercel。
 
 ## ✨ 核心特性
 
 ### 🎬 AI 视频生成
 
-- **多模型支持** - Sora 2、Wan 2.6、Veo 3.1、Seedance、Kie.ai
-- **多种模式** - 文本转视频、图片转视频、视频增强
+- **多模型支持** - Sora 2、Wan 2.6、Veo 3.1、Seedance 1.5 Pro
+- **统一工作流** - 首页轻量输入框 + `/create/video` 工作台
 - **智能积分系统** - FIFO 积分消耗，支持冻结/结算/释放
-- **实时状态追踪** - 生成进度实时更新
+- **稳定状态追踪** - 默认 15s 轮询，适合 Vercel MVP 部署
 
 ### 🎨 现代化 UI
 
@@ -26,7 +26,7 @@
 - **React 19** - 最新 React 特性
 - **Drizzle ORM** - 类型安全的数据库操作
 - **Better Auth** - Google OAuth + Magic Link
-- **Creem + Stripe** - 双支付渠道支持
+- **Stripe** - 默认支付方案，简化 MVP 部署
 
 ### 🌍 国际化
 
@@ -38,7 +38,7 @@
 
 ### 环境要求
 
-- Node.js 18+
+- Node.js 20+
 - pnpm 9+
 - PostgreSQL 数据库
 
@@ -54,13 +54,18 @@ pnpm install
 
 # 配置环境变量
 cp .env.example .env.local
-# 编辑 .env.local 填入你的配置
+# 本地开发编辑 .env.local
+# Vercel 部署参考 .env.vercel.example
 
 # 初始化数据库
 pnpm db:push
 
 # 启动开发服务器
 pnpm dev
+
+# 部署前检查
+pnpm typecheck
+pnpm build
 ```
 
 访问 [http://localhost:3000](http://localhost:3000) 查看效果。
@@ -140,18 +145,13 @@ STORAGE_DOMAIN='https://your-domain.com'
 
 # AI 提供商
 EVOLINK_API_KEY='your-evolink-key'
-KIE_API_KEY='your-kie-key'
 AI_CALLBACK_URL='https://your-domain.com/api/v1/video/callback'
 CALLBACK_HMAC_SECRET='your-callback-secret'
 VIDEO_RECOVERY_SECRET='your-recovery-secret'
 REMOTE_ASSET_ALLOWED_HOSTS='assets.example.com,*.cloudfront.net'
 
-# 计费提供商（creem | stripe）
-NEXT_PUBLIC_BILLING_PROVIDER='creem'
-
-# 支付 - Creem（当 NEXT_PUBLIC_BILLING_PROVIDER=creem 时必填）
-CREEM_API_KEY='your-creem-key'
-CREEM_WEBHOOK_SECRET='your-creem-webhook-secret'
+# 计费提供商
+NEXT_PUBLIC_BILLING_PROVIDER='stripe'
 
 # 支付 - Stripe（当 NEXT_PUBLIC_BILLING_PROVIDER=stripe 时必填）
 STRIPE_API_KEY='your-stripe-key'
@@ -162,9 +162,9 @@ RESEND_API_KEY='your-resend-api-key'
 RESEND_FROM='noreply@yourdomain.com'
 ```
 
-`VIDEO_RECOVERY_SECRET` 只用于内部恢复接口，未配置时 `/api/v1/video/recover` 会默认关闭，并且必须通过 `Authorization: Bearer ...` 调用。  
+`VIDEO_RECOVERY_SECRET` 只用于内部恢复接口，未配置时 `/api/v1/video/recover` 会默认关闭，并且必须通过 `Authorization: Bearer ...` 调用。
 `REMOTE_ASSET_ALLOWED_HOSTS` 用于限制服务端可下载的 provider/CDN 结果域名，避免回调恢复和任务完成流程被恶意 URL 利用。
-`/api/v1/video/events` 现在依赖 Postgres `LISTEN/NOTIFY` 和 Node runtime；如果部署平台不支持长连接，前端仍会退回 15s 轮询。
+当前 MVP 默认关闭实时 SSE，前端统一使用轮询获取结果，更适合 Vercel 的部署模型。
 
 ## 🔄 同步模板更新
 
@@ -208,17 +208,12 @@ git checkout upstream/main -- src/components/landing
    - 新库初始化：可以直接执行 `pnpm db:migrate`
    - 已有线上数据库：优先执行 `pnpm db:push`，不要直接把首个 baseline migration 重放到已有库上
 
-## 🧩 近期更新（2026-01-26）
+## 🧩 当前 MVP 收敛项
 
-- **模型与参数映射统一**：所有 provider 参数转换集中在 `src/ai/model-mapping.ts`，Veo 3.1 高/低质量自动选择对应模型 ID  
-- **生成参数对齐**：首页与工具页统一支持 `mode / imageUrl(s) / outputNumber / generateAudio`，图片上传走 `/api/v1/upload`  
-- **模型能力修正**：Veo 3.1 固定 8s；Wan 2.6 / Seedance 分辨率与质量映射统一  
-- **状态与通知**：Postgres-backed SSE + 15s 轮询，支持多实例部署下的生成完成通知、浏览器通知与 toast  
-- **My Creations 体验优化**：4:3 卡片、hover 自动播放、错误信息展示在预览区  
-
-### 2026-02-02
-- **定价组件升级**：默认展示 Monthly，Yearly 20% OFF 标签，高亮 Popular 方案 UI  
-- **权限与修复**：CreditHistory 崩溃修复，针对免费用户的购买限制逻辑（仅 Subscribers 可买特定包）
+- **支付收敛**：默认以 Stripe 为唯一支付路径
+- **产品收敛**：主流程聚焦视频生成，首页与工作台参数联动
+- **部署收敛**：默认轮询，不依赖 SSE 长连接
+- **安全收敛**：回调 HMAC、远程素材白名单、存储配置占位值校验
 
 ## 🗺 路线图
 

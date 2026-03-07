@@ -14,6 +14,91 @@ export interface StorageConfig {
   publicDomain?: string;
 }
 
+const STORAGE_PLACEHOLDER_HINT =
+  "Replace example values in STORAGE_* with real R2/S3 credentials before using uploads.";
+
+function looksLikePlaceholder(value: string): boolean {
+  const normalized = value.trim().toLowerCase();
+
+  return (
+    normalized.includes("<") ||
+    normalized.includes(">") ||
+    normalized.includes("replace_with") ||
+    normalized.includes("your-domain") ||
+    normalized.includes("your-bucket") ||
+    normalized.includes("xxxxxxxx")
+  );
+}
+
+function normalizeUrlConfig(value: string, envName: string): string {
+  if (!value.trim()) {
+    throw new Error(`${envName} is required.`);
+  }
+
+  if (looksLikePlaceholder(value)) {
+    throw new Error(`${envName} still contains a placeholder value. ${STORAGE_PLACEHOLDER_HINT}`);
+  }
+
+  const candidate = /^(https?:)?\/\//i.test(value) ? value : `https://${value}`;
+
+  try {
+    const parsed = new URL(candidate);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+      throw new Error(`${envName} must use http or https.`);
+    }
+  } catch {
+    throw new Error(`${envName} must be a valid URL. Received: ${value}`);
+  }
+
+  return value.replace(/\/$/, "");
+}
+
+function normalizeBucket(value: string): string {
+  const bucket = value.trim();
+
+  if (!bucket) {
+    throw new Error("STORAGE_BUCKET is required.");
+  }
+
+  if (looksLikePlaceholder(bucket)) {
+    throw new Error(
+      `STORAGE_BUCKET still contains a placeholder value. ${STORAGE_PLACEHOLDER_HINT}`
+    );
+  }
+
+  if (!/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/.test(bucket)) {
+    throw new Error(
+      "STORAGE_BUCKET must be a valid S3-compatible bucket name."
+    );
+  }
+
+  return bucket;
+}
+
+function resolveStorageConfigFromEnv(): StorageConfig {
+  const endpoint = process.env.STORAGE_ENDPOINT;
+  const accessKeyId = process.env.STORAGE_ACCESS_KEY;
+  const secretAccessKey = process.env.STORAGE_SECRET_KEY;
+  const bucket = process.env.STORAGE_BUCKET;
+
+  if (!endpoint || !accessKeyId || !secretAccessKey || !bucket) {
+    throw new Error(
+      "Storage configuration missing. Required: STORAGE_ENDPOINT, STORAGE_ACCESS_KEY, STORAGE_SECRET_KEY, STORAGE_BUCKET"
+    );
+  }
+
+  return {
+    endpoint: normalizeUrlConfig(endpoint, "STORAGE_ENDPOINT"),
+    region: process.env.STORAGE_REGION || "auto",
+    accessKeyId,
+    secretAccessKey,
+    bucket: normalizeBucket(bucket),
+    publicDomain: process.env.STORAGE_DOMAIN
+      ? normalizeUrlConfig(process.env.STORAGE_DOMAIN, "STORAGE_DOMAIN")
+      : undefined,
+  };
+}
+
 export class Storage {
   private client: s3mini;
   private endpointWithBucket: string;
@@ -95,25 +180,7 @@ let storageInstance: Storage | null = null;
 
 export function getStorage(): Storage {
   if (!storageInstance) {
-    const endpoint = process.env.STORAGE_ENDPOINT;
-    const accessKeyId = process.env.STORAGE_ACCESS_KEY;
-    const secretAccessKey = process.env.STORAGE_SECRET_KEY;
-    const bucket = process.env.STORAGE_BUCKET;
-
-    if (!endpoint || !accessKeyId || !secretAccessKey || !bucket) {
-      throw new Error(
-        "Storage configuration missing. Required: STORAGE_ENDPOINT, STORAGE_ACCESS_KEY, STORAGE_SECRET_KEY, STORAGE_BUCKET"
-      );
-    }
-
-    storageInstance = new Storage({
-      endpoint,
-      region: process.env.STORAGE_REGION || "auto",
-      accessKeyId,
-      secretAccessKey,
-      bucket,
-      publicDomain: process.env.STORAGE_DOMAIN,
-    });
+    storageInstance = new Storage(resolveStorageConfigFromEnv());
   }
   return storageInstance;
 }

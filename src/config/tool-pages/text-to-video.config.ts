@@ -38,7 +38,7 @@ export const textToVideoConfig: ToolPageConfig = {
     },
 
     features: {
-      showImageUpload: false,
+      showImageUpload: true,
       showPromptInput: true,
       showModeSelector: false,
     },

@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
-import { Menu, Globe, Gem, LayoutGrid, Tag } from "lucide-react";
-import { useLocalePathname, useLocaleRouter, LocaleLink } from "@/i18n/navigation";
+import { useEffect, useState, useTransition } from "react";
+import { ChevronDown, Gem, Globe, Menu, Sparkles } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
+import { LandingBrand } from "@/components/landing/brand";
+import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/components/ui";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,11 +23,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { cn } from "@/components/ui";
-import { useCredits } from "@/stores/credits-store";
-import type { User } from "@/lib/auth/client";
 import { useSigninModal } from "@/hooks/use-signin-modal";
 import { authClient } from "@/lib/auth/client";
+import type { User } from "@/lib/auth/client";
+import { useLocalePathname, useLocaleRouter, LocaleLink } from "@/i18n/navigation";
+import { useCredits } from "@/stores/credits-store";
 
 export function LandingHeader({ user }: { user?: User | null }) {
   const t = useTranslations("Header");
@@ -38,17 +40,17 @@ export function LandingHeader({ user }: { user?: User | null }) {
   const [, startTransition] = useTransition();
   const [scrolled, setScrolled] = useState(false);
 
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 24);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const handleSignOut = async () => {
     await authClient.signOut();
     router.push(`/${locale}`);
     router.refresh();
   };
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const switchLocale = (newLocale: string) => {
     startTransition(() => {
@@ -56,237 +58,228 @@ export function LandingHeader({ user }: { user?: User | null }) {
     });
   };
 
+  const chromeClass = scrolled
+    ? "border-white/8 bg-[#030c07]/82 shadow-[0_14px_50px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
+    : "border-transparent bg-transparent";
+  const navItemClass = cn(
+    "inline-flex h-11 items-center rounded-full px-4 text-sm font-medium transition",
+    scrolled
+      ? "text-foreground/88 hover:bg-white/6 hover:text-foreground"
+      : "text-white/78 hover:bg-white/6 hover:text-white"
+  );
+
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 transition-all duration-300",
-        scrolled
-          ? "bg-background/80 backdrop-blur-md border-b border-border/50"
-          : "bg-transparent"
-      )}
-    >
-      <div className="container mx-auto px-4">
-        {/* 桌面导航 */}
-        <nav className="hidden lg:flex items-center justify-between h-16">
-          {/* Logo */}
-          <LocaleLink
-            href="/"
-            className="flex items-center gap-2 text-xl font-bold"
-          >
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground text-sm font-black">P</span>
-            </div>
-            <span>PixelMuse</span>
-          </LocaleLink>
+    <header className="sticky top-0 z-50 px-3 pt-3 md:px-5">
+      <div className={cn("mx-auto max-w-7xl rounded-full border transition-all duration-300", chromeClass)}>
+        <div className="flex h-16 items-center justify-between px-4 md:px-6">
+          <LandingBrand compact className="shrink-0" />
 
-          {/* 中间导航 */}
-          <div className="flex items-center gap-1">
-            <LocaleLink
-              href="/create"
-              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-            >
-              <LayoutGrid className="h-4 w-4" />
-              {t("templates")}
-            </LocaleLink>
-            <LocaleLink
-              href="/pricing"
-              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-            >
-              <Tag className="h-4 w-4" />
-              {t("pricing")}
-            </LocaleLink>
-          </div>
-
-          {/* 右侧区域 */}
-          <div className="flex items-center gap-4">
-            {/* 语言切换 */}
+          <nav className="hidden items-center gap-2 lg:flex">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button type="button" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <button type="button" className={navItemClass}>
+                  <span>{t("templates")}</span>
+                  <ChevronDown className="ml-1 h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="center"
+                className="w-72 rounded-3xl border border-white/10 bg-[#07110a]/95 p-2 text-white shadow-2xl backdrop-blur-xl"
+              >
+                <DropdownMenuItem asChild className="cursor-pointer rounded-2xl px-3 py-3 focus:bg-white/10 focus:text-white">
+                  <LocaleLink href="/create/video" className="flex flex-col items-start gap-1">
+                    <span className="font-medium">{t("textToVideo")}</span>
+                    <span className="text-xs text-white/50">{t("textToVideoDesc")}</span>
+                  </LocaleLink>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <LocaleLink href="/pricing" className={navItemClass}>
+              {t("pricing")}
+            </LocaleLink>
+          </nav>
+
+          <div className="hidden items-center gap-2 lg:flex">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    "inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm transition",
+                    scrolled
+                      ? "text-foreground/72 hover:bg-white/6 hover:text-foreground"
+                      : "text-white/72 hover:bg-white/6 hover:text-white"
+                  )}
+                >
                   <Globe className="h-4 w-4" />
-                  <span className="hidden sm:inline">{locale.toUpperCase()}</span>
+                  <span>{locale.toUpperCase()}</span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="min-w-[120px] border-border/50 bg-background/95 backdrop-blur-sm shadow-xl"
+                className="rounded-2xl border border-white/10 bg-[#07110a]/95 text-white shadow-xl backdrop-blur-xl"
               >
                 <DropdownMenuItem
                   onClick={() => switchLocale("en")}
-                  className="cursor-pointer hover:bg-accent"
+                  className="cursor-pointer rounded-xl px-3 py-2 focus:bg-white/10 focus:text-white"
                 >
                   {t("langEn")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => switchLocale("zh")}
-                  className="cursor-pointer hover:bg-accent"
+                  className="cursor-pointer rounded-xl px-3 py-2 focus:bg-white/10 focus:text-white"
                 >
                   {t("langZh")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* 积分显示 */}
+            <div className="[&_button]:h-11 [&_button]:w-11 [&_button]:rounded-full [&_button]:border [&_button]:border-white/10 [&_button]:bg-transparent [&_button]:text-white/72 [&_button]:hover:bg-white/6 [&_svg]:!h-4 [&_svg]:!w-4">
+              <ModeToggle />
+            </div>
+
             {user && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/80 backdrop-blur-sm border border-border/50">
-                <Gem className="h-4 w-4 text-amber-500" />
+              <div className="inline-flex h-11 items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 text-sm text-white/82">
+                <Gem className="h-4 w-4 text-emerald-300" />
                 <CreditsDisplay />
               </div>
             )}
 
-            {/* 用户菜单 */}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button type="button" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-background/20">
-                      <span className="text-sm font-medium">
-                        {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
-                      </span>
-                    </div>
+                  <button
+                    type="button"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                  >
+                    {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-48 border-border/50 bg-background/95 backdrop-blur-sm shadow-xl"
+                  className="w-52 rounded-3xl border border-white/10 bg-[#07110a]/95 p-2 text-white shadow-2xl backdrop-blur-xl"
                 >
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent">
+                  <DropdownMenuItem asChild className="cursor-pointer rounded-2xl px-3 py-2 focus:bg-white/10 focus:text-white">
                     <LocaleLink href="/my-creations">{t("myCreations")}</LocaleLink>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent">
+                  <DropdownMenuItem asChild className="cursor-pointer rounded-2xl px-3 py-2 focus:bg-white/10 focus:text-white">
                     <LocaleLink href="/credits">{t("credits")}</LocaleLink>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-accent">
+                  <DropdownMenuItem asChild className="cursor-pointer rounded-2xl px-3 py-2 focus:bg-white/10 focus:text-white">
                     <LocaleLink href="/settings">{t("settings")}</LocaleLink>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-border/50" />
+                  <DropdownMenuSeparator className="my-2 bg-white/10" />
                   <DropdownMenuItem
-                    className="text-destructive cursor-pointer hover:bg-destructive/10"
                     onClick={handleSignOut}
+                    className="cursor-pointer rounded-2xl px-3 py-2 text-red-300 focus:bg-red-500/10 focus:text-red-200"
                   >
                     {tNav("sign_out")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="ghost" size="sm" onClick={signInModal.onOpen}>
+              <Button
+                onClick={signInModal.onOpen}
+                className="h-12 rounded-2xl bg-emerald-500 px-5 text-sm font-semibold text-black shadow-[0_14px_40px_rgba(34,197,94,0.32)] hover:bg-emerald-400"
+              >
                 {tCommon("login")}
               </Button>
             )}
           </div>
-        </nav>
 
-        {/* 移动端导航 */}
-        <div className="lg:hidden flex items-center justify-between h-16">
-          {/* Logo */}
-          <LocaleLink href="/" className="flex items-center gap-2 text-lg font-bold">
-            <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground text-xs font-black">P</span>
-            </div>
-            <span>PixelMuse</span>
-          </LocaleLink>
-
-          {/* 移动端右侧 */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 lg:hidden">
             {user && (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-muted border border-border">
-                <Gem className="h-3 w-3 text-amber-500" />
-                <span className="text-xs font-medium">
-                  <CreditsDisplay />
-                </span>
+              <div className="inline-flex h-9 items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-3 text-xs text-white/82">
+                <Gem className="h-3.5 w-3.5 text-emerald-300" />
+                <CreditsDisplay />
               </div>
             )}
 
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label={t("openMenu")}>
+                <button
+                  type="button"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/85"
+                  aria-label={t("openMenu")}
+                >
                   <Menu className="h-5 w-5" />
-                </Button>
+                </button>
               </SheetTrigger>
-              <SheetContent className="overflow-y-auto">
+              <SheetContent className="border-white/10 bg-[#041009] text-white">
                 <SheetHeader>
                   <SheetTitle>
-                    <LocaleLink href="/" className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
-                        <span className="text-primary-foreground text-xs font-black">P</span>
-                      </div>
-                      PixelMuse
-                    </LocaleLink>
+                    <LandingBrand compact textClassName="text-white" />
                   </SheetTitle>
                   <SheetDescription className="sr-only">
-                    Mobile navigation menu
+                    {t("openMenu")}
                   </SheetDescription>
                 </SheetHeader>
 
                 <div className="mt-8 flex flex-col gap-2">
-                  <LocaleLink
-                    href="/create"
-                    className="flex items-center gap-2 font-semibold p-3 hover:bg-accent rounded-md transition-colors"
-                  >
-                    <LayoutGrid className="h-4 w-4" />
-                    {t("templates")}
-                  </LocaleLink>
+                  <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-2">
+                    <div className="mb-2 px-3 text-xs uppercase tracking-[0.24em] text-white/35">
+                      {t("templates")}
+                    </div>
+                    <LocaleLink
+                      href="/create/video"
+                      className="flex items-center gap-2 rounded-2xl px-3 py-3 text-sm font-medium text-white/88 transition hover:bg-white/8"
+                    >
+                      <Sparkles className="h-4 w-4 text-emerald-300" />
+                      <div className="flex flex-col">
+                        <span>{t("textToVideo")}</span>
+                        <span className="text-xs text-white/45">{t("textToVideoDesc")}</span>
+                      </div>
+                    </LocaleLink>
+                  </div>
+
                   <LocaleLink
                     href="/pricing"
-                    className="flex items-center gap-2 font-semibold p-3 hover:bg-accent rounded-md transition-colors"
+                    className="rounded-full px-4 py-3 text-sm font-medium text-white/78 transition hover:bg-white/6 hover:text-white"
                   >
-                    <Tag className="h-4 w-4" />
                     {t("pricing")}
                   </LocaleLink>
+                </div>
 
-                  {/* 语言切换 */}
-                  <div className="flex items-center gap-3 p-3">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <button
-                      type="button"
-                      onClick={() => switchLocale("en")}
-                      className="text-sm hover:text-foreground transition-colors text-muted-foreground"
-                    >
-                      {t("langEn")}
-                    </button>
-                    <span className="text-muted-foreground">/</span>
-                    <button
-                      type="button"
-                      onClick={() => switchLocale("zh")}
-                      className="text-sm hover:text-foreground transition-colors text-muted-foreground"
-                    >
-                      {t("langZh")}
-                    </button>
+                <div className="mt-6 flex items-center gap-3 rounded-3xl border border-white/10 bg-white/[0.03] p-3">
+                  <Globe className="h-4 w-4 text-white/48" />
+                  <button type="button" onClick={() => switchLocale("en")} className="text-sm text-white/72">
+                    {t("langEn")}
+                  </button>
+                  <span className="text-white/25">/</span>
+                  <button type="button" onClick={() => switchLocale("zh")} className="text-sm text-white/72">
+                    {t("langZh")}
+                  </button>
+                  <div className="ml-auto [&_button]:h-9 [&_button]:w-9 [&_button]:rounded-full [&_button]:border [&_button]:border-white/10 [&_button]:bg-transparent [&_button]:text-white/70 [&_button]:hover:bg-white/6 [&_svg]:!h-4 [&_svg]:!w-4">
+                    <ModeToggle />
                   </div>
                 </div>
 
-                {/* 账户区域 */}
-                <div className="border-t pt-4 mt-4">
+                <div className="mt-6 border-t border-white/10 pt-6">
                   {user ? (
                     <div className="flex flex-col gap-2">
-                      <LocaleLink
-                        href="/my-creations"
-                        className="p-2 hover:bg-accent rounded-md transition-colors"
-                      >
+                      <LocaleLink href="/my-creations" className="rounded-full px-4 py-3 text-sm text-white/80 transition hover:bg-white/6 hover:text-white">
                         {t("myCreations")}
                       </LocaleLink>
-                      <LocaleLink
-                        href="/credits"
-                        className="p-2 hover:bg-accent rounded-md transition-colors"
-                      >
+                      <LocaleLink href="/credits" className="rounded-full px-4 py-3 text-sm text-white/80 transition hover:bg-white/6 hover:text-white">
                         {t("credits")}
                       </LocaleLink>
-                      <LocaleLink
-                        href="/settings"
-                        className="p-2 hover:bg-accent rounded-md transition-colors"
-                      >
+                      <LocaleLink href="/settings" className="rounded-full px-4 py-3 text-sm text-white/80 transition hover:bg-white/6 hover:text-white">
                         {t("settings")}
                       </LocaleLink>
                       <button
                         type="button"
                         onClick={handleSignOut}
-                        className="p-2 text-left text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+                        className="rounded-full px-4 py-3 text-left text-sm text-red-300 transition hover:bg-red-500/10"
                       >
                         {tNav("sign_out")}
                       </button>
                     </div>
                   ) : (
-                    <Button variant="outline" onClick={signInModal.onOpen}>
+                    <Button
+                      onClick={signInModal.onOpen}
+                      className="h-12 w-full rounded-2xl bg-emerald-500 text-sm font-semibold text-black hover:bg-emerald-400"
+                    >
                       {tCommon("login")}
                     </Button>
                   )}

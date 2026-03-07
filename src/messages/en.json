@@ -1,7 +1,7 @@
 {
   "Metadata": {
-    "title": "PixelMuse - AI Image & Video Creation Platform",
-    "description": "20+ scene templates, generate stunning images and videos with one click. No design skills needed."
+    "title": "VideoFly - AI Video Creation Platform",
+    "description": "Turn a prompt or image into polished AI video with Sora 2, Veo 3.1, Wan 2.6, and more."
   },
   "Common": {
     "login": "Login",
@@ -18,34 +18,48 @@
     "success": "Success"
   },
   "Header": {
-    "templates": "Templates",
+    "templates": "Tools",
     "pricing": "Pricing",
     "myCreations": "My Creations",
     "credits": "Credits",
     "settings": "Settings",
     "langZh": "中文",
     "langEn": "English",
+    "textToVideo": "Text / Image to Video",
+    "textToVideoDesc": "Open the studio and iterate on video ideas fast",
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
   "Hero": {
-    "badge": "20+ Scene Templates, Ready to Use",
-    "titleLine1": "Pick a Scene,",
-    "titleLine2": "Let AI Create for You",
-    "description": "No design skills needed, no prompt writing required. 20+ scene templates to generate stunning images and videos in one click.",
-    "startCreating": "Try for Free",
-    "creditsHint": "No credit card · Free credits on signup",
-    "categoryEcommerce": "E-Commerce",
-    "categoryEcommerceDesc": "Product images, promo banners",
-    "categorySocial": "Social Media",
-    "categorySocialDesc": "Instagram, cover photos",
-    "categoryBusiness": "Business",
-    "categoryBusinessDesc": "Presentations, report visuals",
-    "categoryPersonal": "Personal",
-    "categoryPersonalDesc": "Portraits, memories, stories",
-    "stat1": "20+ Templates",
-    "stat2": "Image + Video",
-    "stat3": "HD, No Watermark"
+    "badge": "Supports Sora 2, Veo 3.1, and more",
+    "title": "Turn Your Ideas Into Stunning Videos",
+    "description": "Create production-ready AI video in minutes. Start from text, upload an image, or refine existing material in one streamlined studio.",
+    "featurePills": {
+      "speed": "Lightning Fast",
+      "ease": "Easy to Use",
+      "ai": "AI Powered"
+    },
+    "studio": {
+      "mode": "Text/Image to Video",
+      "placeholder": "Enter your idea to generate video",
+      "addImage": "Add Image",
+      "imageAlt": "Uploaded reference image",
+      "creditLabel": "Credits",
+      "freeCreditsHint": "Start with 2 free credits · No credit card required",
+      "shufflePrompts": "Shuffle prompt ideas",
+      "suggestions": {
+        "prompt1": "Cozy Christmas cabin with lantern glow and a slow push-in shot",
+        "prompt2": "Workaholic founder pacing through a neon office at midnight",
+        "prompt3": "Quiet resolve on a rainy Tokyo crosswalk, restrained cinematic mood",
+        "prompt4": "Cinematic courtroom confrontation lit by candles and low key shadows",
+        "prompt5": "Nature documentary shot of whales breaching at sunrise over calm water",
+        "prompt6": "Minimal luxury product commercial with slow dolly movement and glossy reflections"
+      },
+      "errors": {
+        "invalidImageType": "Please upload a PNG, JPG, or WEBP image",
+        "imageTooLarge": "Image size must be 10MB or less"
+      }
+    }
   },
   "Showcase": {
     "badge": "Featured Templates",
@@ -80,7 +94,7 @@
     "badge": "Real Cases",
     "titleLine1": "See What Others",
     "titleLine2": "Are Creating",
-    "description": "Creators from all industries use PixelMuse to work smarter",
+    "description": "Creators across industries use VideoFly to ship ideas faster",
     "usingTemplate": "Using template:",
     "case1Badge": "E-Commerce",
     "case1Title": "Online Seller",
@@ -130,11 +144,11 @@
     "subtitle": "The top 6 questions from first-time users",
     "contact": "Still have questions? Feel free to contact us",
     "q1": "I know nothing about AI. Can I use this?",
-    "a1": "Absolutely! PixelMuse is designed for zero-skill users. Just pick a scene template, fill in simple details (like product name, color preference), and the system auto-generates professional AI prompts and creates your image or video. It's as easy as filling out a form.",
+    "a1": "Absolutely. VideoFly is built for people who want results without learning a complicated workflow. Write a prompt or upload a reference image and the studio handles the rest.",
     "q2": "How many credits does it take to generate an image or video?",
     "a2": "Image generation costs 1–2 credits, video generation costs 2–5 credits, depending on the model and parameters. You receive free trial credits upon signup, enough for multiple tries. Credit packs are purchased as needed — no subscription pressure.",
     "q3": "Can I use the generated images/videos commercially?",
-    "a3": "Yes. All content generated through PixelMuse comes with a commercial use license, suitable for advertising, social media, e-commerce product listings, and other business scenarios. Note: if you upload a reference image, ensure you have the rights to that image.",
+    "a3": "Yes. Content generated with VideoFly can be used for advertising, social media, e-commerce, and other commercial work. If you upload a reference image, make sure you have the rights to use that source asset.",
     "q4": "How long does generation take?",
     "a4": "Images typically complete in 15–30 seconds; videos usually take 1–3 minutes. You can start other tasks while waiting — the system will notify you when done.",
     "q5": "Can I regenerate if I'm not satisfied with the result?",
@@ -143,11 +157,11 @@
     "a6": "Images support JPG, PNG, and WebP formats, up to 2K resolution. Videos support MP4 format, up to 1080P resolution. All files can be downloaded directly to your device."
   },
   "Footer": {
-    "tagline": "AI-powered creation platform. Pick a scene, generate stunning images and videos instantly. Perfect for beginners.",
+    "tagline": "An AI video studio for teams shipping fast. Start from a prompt, upload a still, choose a model, and get much closer to a final cut in one flow.",
     "product": "Product",
     "company": "Company",
     "legal": "Legal",
-    "linkTemplates": "Templates",
+    "linkTemplates": "Video Studio",
     "linkPricing": "Pricing",
     "linkDashboard": "My Creations",
     "linkAbout": "About Us",
@@ -155,8 +169,8 @@
     "linkContact": "Contact Us",
     "linkPrivacy": "Privacy Policy",
     "linkTerms": "Terms of Service",
-    "copyright": "© {currentYear} PixelMuse. All rights reserved.",
-    "madeWith": "Made with {heart} by PixelMuse Team"
+    "copyright": "© {currentYear} VideoFly. All rights reserved.",
+    "madeWith": "Made with {heart} by the VideoFly team"
   },
   "Notifications": {
     "generationWillNotify": "Generation may take a while. We'll notify you when it's ready.",

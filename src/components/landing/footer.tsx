@@ -3,6 +3,7 @@
 import { Heart } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { LandingBrand } from "@/components/landing/brand";
 import { LocaleLink } from "@/i18n/navigation";
 
 export function LandingFooter() {
@@ -13,7 +14,7 @@ export function LandingFooter() {
     {
       title: t("product"),
       links: [
-        { title: t("linkTemplates"), href: "/create" },
+        { title: t("linkTemplates"), href: "/create/video" },
         { title: t("linkPricing"), href: "/pricing" },
         { title: t("linkDashboard"), href: "/my-creations" },
       ],
@@ -21,45 +22,32 @@ export function LandingFooter() {
     {
       title: t("legal"),
       links: [
-        { title: t("linkPrivacy"), href: "/privacy" },
-        { title: t("linkTerms"), href: "/terms" },
+        { title: t("linkPrivacy"), href: "/privacy-policy" },
+        { title: t("linkTerms"), href: "/terms-of-service" },
       ],
     },
   ];
 
   return (
-    <footer className="border-t border-border bg-background">
-      <div className="container mx-auto px-4 py-12">
-        {/* 主要内容 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          {/* 品牌列 */}
-          <div className="col-span-2 md:col-span-2">
-            <LocaleLink
-              href="/"
-              className="flex items-center gap-2 text-xl font-bold mb-4"
-            >
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground text-sm font-black">P</span>
-              </div>
-              <span>PixelMuse</span>
-            </LocaleLink>
-            <p className="text-sm text-muted-foreground mb-4 max-w-xs leading-relaxed">
-              {t("tagline")}
-            </p>
+    <footer className="border-t border-white/8 bg-[#020805] text-white">
+      <div className="container mx-auto px-4 py-14">
+        <div className="grid gap-10 md:grid-cols-[1.4fr_0.8fr_0.8fr]">
+          <div className="max-w-md">
+            <LandingBrand />
+            <p className="mt-5 text-sm leading-7 text-white/55">{t("tagline")}</p>
           </div>
 
-          {/* 链接列 */}
           {footerSections.map((section) => (
             <div key={section.title}>
-              <h3 className="text-sm font-semibold text-foreground mb-4">
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-white/40">
                 {section.title}
               </h3>
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {section.links.map((link) => (
                   <li key={link.title}>
                     <LocaleLink
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-sm text-white/62 transition hover:text-white"
                     >
                       {link.title}
                     </LocaleLink>
@@ -70,15 +58,12 @@ export function LandingFooter() {
           ))}
         </div>
 
-        {/* 底部栏 */}
-        <div className="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-border gap-4">
-          <p className="text-sm text-muted-foreground">
-            {t("copyright", { currentYear })}
-          </p>
-          <p className="text-sm text-muted-foreground flex items-center gap-1">
-            Made with
-            <Heart className="h-4 w-4 fill-pink-500 text-pink-500" />
-            by PixelMuse Team
+        <div className="mt-12 flex flex-col gap-3 border-t border-white/8 pt-8 text-sm text-white/42 md:flex-row md:items-center md:justify-between">
+          <p>{t("copyright", { currentYear })}</p>
+          <p className="flex items-center gap-1.5">
+            {t.rich("madeWith", {
+              heart: () => <Heart className="h-4 w-4 fill-emerald-400 text-emerald-400" />,
+            })}
           </p>
         </div>
       </div>

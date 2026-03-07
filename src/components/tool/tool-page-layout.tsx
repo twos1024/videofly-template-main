@@ -19,6 +19,7 @@ import { authClient } from "@/lib/auth/client";
 import { useCredits } from "@/stores/credits-store";
 import { useVideoPolling } from "@/hooks/use-video-polling";
 import { useNotificationDeduplication } from "@/hooks/use-notification-deduplication";
+import { consumeToolPrefill, type ToolPrefillData } from "@/lib/tool-prefill";
 import { videoTaskStorage } from "@/lib/video-task-storage";
 import { videoHistoryStorage, type VideoHistoryItem } from "@/lib/video-history-storage";
 import { useUpgradeModal } from "@/hooks/use-upgrade-modal";
@@ -32,8 +33,6 @@ import { ToolLandingPage } from "@/components/tool/tool-landing-page";
 import { VideoHistoryPanel } from "@/components/tool/video-history-panel";
 import { enableRealtimeVideoEvents } from "@/config/features";
 import { toast } from "sonner";
-
-const TOOL_PREFILL_KEY = "videofly_tool_prefill";
 
 // ============================================================================
 // Types
@@ -108,6 +107,7 @@ export function ToolPageLayout({
     aspectRatio?: string;
     quality?: string;
     imageUrl?: string;
+    imageFile?: File;
   } | null>(null);
   const handledQueryVideoIdRef = useRef<string | null>(null);
 
@@ -258,23 +258,21 @@ export function ToolPageLayout({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    try {
-      const raw = sessionStorage.getItem(TOOL_PREFILL_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      setPrefillData({
-        prompt: parsed?.prompt,
-        model: parsed?.model,
-        duration: parsed?.duration,
-        aspectRatio: parsed?.aspectRatio,
-        quality: parsed?.quality,
-        imageUrl: parsed?.imageUrl,
-      });
-      sessionStorage.removeItem(TOOL_PREFILL_KEY);
-    } catch (error) {
-      console.warn("Failed to read tool prefill data:", error);
-    }
+    const prefill = consumeToolPrefill();
+    if (!prefill) return;
+    setPrefillData({
+      prompt: prefill.prompt,
+      model: prefill.model,
+      duration: prefill.duration,
+      aspectRatio: prefill.aspectRatio,
+      quality: prefill.quality,
+      imageUrl: prefill.imageUrl,
+      imageFile: prefill.imageFile,
+    });
   }, []);
+
+  const allowUnifiedImageInput =
+    toolRoute === "text-to-video" && config.generator.features.showImageUpload;
 
   // 加载历史记录（用户登录时）
   useEffect(() => {
@@ -653,6 +651,8 @@ export function ToolPageLayout({
                     initialAspectRatio={prefillData?.aspectRatio}
                     initialQuality={prefillData?.quality}
                     initialImageUrl={prefillData?.imageUrl}
+                    initialImageFile={prefillData?.imageFile}
+                    allowUnifiedInput={allowUnifiedImageInput}
                   />
                 </div>
 
@@ -736,6 +736,8 @@ export function ToolPageLayout({
                 initialAspectRatio={prefillData?.aspectRatio}
                 initialQuality={prefillData?.quality}
                 initialImageUrl={prefillData?.imageUrl}
+                initialImageFile={prefillData?.imageFile}
+                allowUnifiedInput={allowUnifiedImageInput}
               />
             </div>
           </div>
