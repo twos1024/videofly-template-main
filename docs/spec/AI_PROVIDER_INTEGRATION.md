@@ -1,12 +1,14 @@
-# AI Provider 接入规范
+# PexelMuse AI Provider 接入规范
 
 > **AI 辅助开发参考文档** | 最后更新: 2026-01-26
+
+> 说明：这是 provider 架构参考文档，不是当前生产环境的逐步部署手册。实际接入以 `docs/API-INTEGRATION-GUIDE.md` 和当前代码实现为准。
 
 ---
 
 ## 📋 文档说明
 
-本文档定义了 VideoFly 平台接入 AI 视频生成提供商的**架构规范、数据结构和方法约定**。
+本文档定义了 PexelMuse 平台接入 AI 视频生成提供商的**架构规范、数据结构和方法约定**。
 
 **使用方法**：
 1. 向 AI 提供本文档 + 供应商 API 文档
@@ -732,4 +734,4 @@ interface AIVideoProvider {
 
 **文档版本**: v1.1
 **最后更新**: 2026-01-26
-**维护者**: VideoFly Team
+**维护者**: PexelMuse Team

@@ -1,6 +1,8 @@
-# VideoFly 组件使用规范
+# PexelMuse 组件使用规范
 
 > AI 辅助开发参考文档 | 最后更新: 2026-01-20
+
+> 说明：这份文档主要保留模板阶段的组件清单和约定，当前项目的实际组件边界以 `src/components/` 和工具页实现为准。
 
 ---
 
@@ -48,7 +50,7 @@ import { Writing } from "@/components/animate-ui/writing";
 // 业务组件 - 从各自目录导入
 import { VideoGeneratorInput } from "@/components/video-generator";
 import { ClusterOperations } from "@/components/k8s/cluster-operation";
-import { CreemPricing } from "@/components/price/creem-pricing";
+import { PricingCards } from "@/components/price/pricing-cards";
 import { DashboardShell } from "@/components/shell";
 ```
 
