@@ -479,8 +479,12 @@ export function ToolPageLayout({
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || tTool("errors.generateFailed"));
+        const error = await response.json().catch(() => null);
+        throw new Error(
+          error?.error?.message ||
+          error?.message ||
+          tTool("errors.generateFailed")
+        );
       }
 
       const result = await response.json();

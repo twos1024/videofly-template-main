@@ -8,8 +8,6 @@
  * - 持久化到 localStorage
  */
 
-import type { Video } from "@/db";
-
 // ============================================================================
 // Types
 // ============================================================================
@@ -34,6 +32,40 @@ export interface VideoHistoryItem {
 interface VideoHistoryStorageData {
   items: VideoHistoryItem[];
   lastSyncAt?: string;
+}
+
+interface ServerVideoHistoryItem {
+  uuid: string;
+  userId: string;
+  prompt: string;
+  model: string;
+  status: string;
+  videoUrl: string | null;
+  thumbnailUrl: string | null;
+  duration: number | null;
+  aspectRatio: string | null;
+  creditsUsed: number;
+  isDeleted?: boolean | null;
+  createdAt: string | Date | null | undefined;
+  updatedAt: string | Date | null | undefined;
+}
+
+function normalizeTimestamp(
+  value: string | Date | null | undefined,
+  fallback = new Date()
+): string {
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? fallback.toISOString() : value.toISOString();
+  }
+
+  if (typeof value === "string") {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
+  }
+
+  return fallback.toISOString();
 }
 
 // ============================================================================
@@ -120,7 +152,7 @@ class VideoHistoryStorage {
    * - 去重并限制 20 条
    * - 排除已删除的视频（isDeleted = true）
    */
-  syncFromServer(videos: Video[]): void {
+  syncFromServer(videos: ServerVideoHistoryItem[]): void {
     if (!videos.length) return;
 
     // 过滤掉已删除的视频
@@ -131,20 +163,24 @@ class VideoHistoryStorage {
     const userId = activeVideos[0].userId;
 
     // 将服务器数据转换为历史记录格式
-    const serverItems: VideoHistoryItem[] = activeVideos.map((v) => ({
-      uuid: v.uuid,
-      userId: v.userId,
-      prompt: v.prompt,
-      model: v.model,
-      status: this.normalizeStatus(v.status),
-      videoUrl: v.videoUrl || undefined,
-      thumbnailUrl: v.thumbnailUrl || undefined,
-      duration: v.duration || undefined,
-      aspectRatio: v.aspectRatio || undefined,
-      creditsUsed: v.creditsUsed,
-      createdAt: v.createdAt.toISOString(),
-      updatedAt: v.updatedAt.toISOString(),
-    }));
+    const serverItems: VideoHistoryItem[] = activeVideos.map((v) => {
+      const createdAt = normalizeTimestamp(v.createdAt);
+
+      return {
+        uuid: v.uuid,
+        userId: v.userId,
+        prompt: v.prompt,
+        model: v.model,
+        status: this.normalizeStatus(v.status),
+        videoUrl: v.videoUrl || undefined,
+        thumbnailUrl: v.thumbnailUrl || undefined,
+        duration: v.duration || undefined,
+        aspectRatio: v.aspectRatio || undefined,
+        creditsUsed: v.creditsUsed,
+        createdAt,
+        updatedAt: normalizeTimestamp(v.updatedAt, new Date(createdAt)),
+      };
+    });
 
     // 合并本地和服务器数据
     const localItems = this.getHistory(userId);

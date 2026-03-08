@@ -18,8 +18,8 @@ export interface Video {
   parameters: Record<string, unknown>;
   creditsUsed: number;
   errorMessage: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
 
 // ============================================
@@ -80,7 +80,7 @@ export interface CreditTransaction {
   transType: CreditTransType;
   videoUuid: string | null;
   remark: string | null;
-  createdAt: Date;
+  createdAt: string | Date;
 }
 
 export interface CreditBalance {
@@ -116,14 +116,14 @@ export interface Invoice {
   currency: string;
   status: InvoiceStatus;
   items: InvoiceItem[];
-  createdAt: Date;
+  createdAt: string | Date;
 }
 
 export interface BillingResponse {
   user: {
     email: string;
     id: string;
-    createdAt: Date;
+    createdAt: string | Date;
   };
   invoices: Invoice[];
   nextCursor: string | null;

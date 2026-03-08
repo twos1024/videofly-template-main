@@ -17,6 +17,7 @@ import {
   calculateImageCredits,
   getImageModelConfig,
 } from "@/config/credits";
+import { resolvePublicCallbackBaseUrl } from "@/lib/env/callback-url";
 
 // ImageStatus mirrors VideoStatus — schema already defines imageStatusEnum
 export const ImageStatus = {
@@ -50,9 +51,15 @@ export class ImageService {
   private callbackBaseUrl: string;
 
   constructor() {
-    this.callbackBaseUrl = process.env.AI_CALLBACK_URL
-      ? process.env.AI_CALLBACK_URL.replace("/video/callback", "/image/callback")
-      : "";
+    this.callbackBaseUrl =
+      resolvePublicCallbackBaseUrl({
+        callbackUrl: process.env.AI_CALLBACK_URL?.replace(
+          "/video/callback",
+          "/image/callback"
+        ),
+        appUrl: process.env.NEXT_PUBLIC_APP_URL,
+        callbackPath: "/api/v1/image/callback",
+      }) || "";
   }
 
   async generate(params: GenerateImageParams): Promise<ImageGenerationResult> {
@@ -131,12 +138,20 @@ export class ImageService {
       ((process.env.DEFAULT_AI_PROVIDER as ProviderType) || "kie");
     const provider = getProvider(providerType);
 
-    const callbackUrl = this.callbackBaseUrl
-      ? generateSignedCallbackUrl(
+    let callbackUrl: string | undefined;
+    if (this.callbackBaseUrl) {
+      try {
+        callbackUrl = generateSignedCallbackUrl(
           `${this.callbackBaseUrl}/${providerType}`,
           imageResult.uuid
-        )
-      : undefined;
+        );
+      } catch (error) {
+        console.warn(
+          "Failed to generate signed image callback URL. Falling back to polling-only mode:",
+          error
+        );
+      }
+    }
 
     try {
       // Reuse createTask — image models share the same task interface

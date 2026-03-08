@@ -13,6 +13,7 @@ import {
   decodeCompositeCursor,
   encodeCompositeCursor,
 } from "@/lib/pagination-cursor";
+import { resolvePublicCallbackBaseUrl } from "@/lib/env/callback-url";
 
 export interface GenerateVideoParams {
   userId: string;
@@ -47,11 +48,27 @@ async function emitVideoEventSafely(
   }
 }
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) return error.message;
+  if (error instanceof Error && error.message) return error.message;
+  return "Unexpected error";
+}
+
+function toApiError(error: unknown, status = 500): ApiError {
+  if (error instanceof ApiError) return error;
+  return new ApiError(getErrorMessage(error), status);
+}
+
 export class VideoService {
   private callbackBaseUrl: string;
 
   constructor() {
-    this.callbackBaseUrl = process.env.AI_CALLBACK_URL || "";
+    this.callbackBaseUrl =
+      resolvePublicCallbackBaseUrl({
+        callbackUrl: process.env.AI_CALLBACK_URL,
+        appUrl: process.env.NEXT_PUBLIC_APP_URL,
+        callbackPath: "/api/v1/video/callback",
+      }) || "";
   }
 
   /**
@@ -60,7 +77,7 @@ export class VideoService {
   async generate(params: GenerateVideoParams): Promise<VideoGenerationResult> {
     const modelConfig = getModelConfig(params.model);
     if (!modelConfig) {
-      throw new Error(`Unsupported model: ${params.model}`);
+      throw new ApiError(`Unsupported model: ${params.model}`, 400);
     }
 
     assertRemoteAssetDownloadConfigured();
@@ -77,7 +94,10 @@ export class VideoService {
       (params.imageUrls && params.imageUrls.length > 0) || Boolean(params.imageUrl);
 
     if (hasImageInput && !modelConfig.supportImageToVideo) {
-      throw new Error(`Model ${params.model} does not support image-to-video`);
+      throw new ApiError(
+        `Model ${params.model} does not support image-to-video`,
+        400
+      );
     }
 
     const selectedProvider =
@@ -112,7 +132,7 @@ export class VideoService {
       .returning({ uuid: videos.uuid, id: videos.id });
 
     if (!videoResult) {
-      throw new Error("Failed to create video record");
+      throw new ApiError("Failed to create video record", 500);
     }
 
     let freezeResult: { success: boolean; holdId: number };
@@ -127,11 +147,14 @@ export class VideoService {
         .update(videos)
         .set({
           status: VideoStatus.FAILED,
-          errorMessage: String(error),
+          errorMessage: getErrorMessage(error),
           updatedAt: new Date(),
         })
         .where(eq(videos.uuid, videoResult.uuid));
-      throw error;
+      throw toApiError(
+        error,
+        getErrorMessage(error).includes("Insufficient credits") ? 402 : 409
+      );
     }
 
     if (!freezeResult.success) {
@@ -143,15 +166,23 @@ export class VideoService {
           updatedAt: new Date(),
         })
         .where(eq(videos.uuid, videoResult.uuid));
-      throw new Error(`Insufficient credits. Required: ${creditsRequired}`);
+      throw new ApiError(`Insufficient credits. Required: ${creditsRequired}`, 402);
     }
 
-    const callbackUrl = this.callbackBaseUrl
-      ? generateSignedCallbackUrl(
-        `${this.callbackBaseUrl}/${selectedProvider}`,
-        videoResult.uuid
-      )
-      : undefined;
+    let callbackUrl: string | undefined;
+    if (this.callbackBaseUrl) {
+      try {
+        callbackUrl = generateSignedCallbackUrl(
+          `${this.callbackBaseUrl}/${selectedProvider}`,
+          videoResult.uuid
+        );
+      } catch (error) {
+        console.warn(
+          "Failed to generate signed callback URL. Falling back to polling-only mode:",
+          error
+        );
+      }
+    }
 
     try {
       const provider = getProvider(selectedProvider);
@@ -193,11 +224,11 @@ export class VideoService {
         .update(videos)
         .set({
           status: VideoStatus.FAILED,
-          errorMessage: String(error),
+          errorMessage: getErrorMessage(error),
           updatedAt: new Date(),
         })
         .where(eq(videos.uuid, videoResult.uuid));
-      throw error;
+      throw toApiError(error, 502);
     }
   }
 
