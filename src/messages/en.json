@@ -231,6 +231,7 @@
       "aspectRatio": "ASPECT RATIO",
       "videoLength": "VIDEO LENGTH",
       "resolution": "RESOLUTION",
+      "settings": "SETTINGS",
       "totalCredits": "Total Credits:",
       "creditsUnit": "Credits",
       "generating": "Generating...",

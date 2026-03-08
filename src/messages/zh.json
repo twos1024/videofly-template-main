@@ -231,6 +231,7 @@
       "aspectRatio": "画面比例",
       "videoLength": "视频时长",
       "resolution": "分辨率",
+      "settings": "设置",
       "totalCredits": "总积分:",
       "creditsUnit": "积分",
       "generating": "生成中...",

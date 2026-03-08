@@ -7,6 +7,7 @@ import { CompactGenerator, type SubmitData, type UploadedImage } from "@/compone
 import { cn } from "@/components/ui";
 import type { ToolPageConfig } from "@/config/tool-pages";
 import { adaptToolPageConfigToGeneratorConfig } from "@/config/tool-pages/adapter";
+import { resolutionToQuality } from "@/lib/video-api";
 
 interface GeneratorPanelProps {
   toolType: "image-to-video" | "text-to-video" | "reference-to-video";
@@ -31,7 +32,10 @@ export interface GeneratorData {
   prompt: string;
   duration: number;
   aspectRatio: string;
+  resolution?: string;
   quality?: string;
+  outputNumber: number;
+  generateAudio?: boolean;
   imageFile?: File;
   imageUrl?: string;
   estimatedCredits: number;
@@ -139,7 +143,10 @@ export function GeneratorPanel({
       prompt: data.prompt.trim(),
       duration: Number.isNaN(parsedDuration) ? initialDuration ?? 10 : parsedDuration,
       aspectRatio: data.aspectRatio,
-      quality: data.resolution,
+      resolution: data.resolution,
+      quality: data.quality ?? resolutionToQuality(data.resolution),
+      outputNumber: data.outputNumber,
+      generateAudio: data.generateAudio,
       imageFile: data.images?.[0],
       imageUrl: data.imageUrls?.[0],
       estimatedCredits: data.estimatedCredits,

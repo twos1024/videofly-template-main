@@ -4,14 +4,47 @@
  * 恢复卡住的视频
  */
 
-const API_BASE = "https://videofly.app/api/v1/video";
-const SECRET = process.env.CALLBACK_HMAC_SECRET || "your_callback_secret_for_hmac";
+const RAW_APP_URL =
+  process.env.APP_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
+  "http://localhost:3000";
+const RECOVERY_SECRET = process.env.VIDEO_RECOVERY_SECRET;
+
+function normalizeAppUrl(value) {
+  if (!value) {
+    return "http://localhost:3000";
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    return value.replace(/\/$/, "");
+  }
+
+  if (value.startsWith("localhost") || value.startsWith("127.0.0.1")) {
+    return `http://${value.replace(/\/$/, "")}`;
+  }
+
+  return `https://${value.replace(/\/$/, "")}`;
+}
+
+const API_BASE = `${normalizeAppUrl(RAW_APP_URL)}/api/v1/video`;
+
+function getAuthHeaders(extraHeaders = {}) {
+  if (!RECOVERY_SECRET) {
+    throw new Error("VIDEO_RECOVERY_SECRET environment variable is required");
+  }
+
+  return {
+    authorization: `Bearer ${RECOVERY_SECRET}`,
+    ...extraHeaders,
+  };
+}
 
 async function checkStuckVideos() {
   console.log("🔍 检查卡住的视频状态...\n");
 
-  const response = await fetch(`${API_BASE}/recover?secret=${SECRET}`, {
+  const response = await fetch(`${API_BASE}/recover`, {
     method: "GET",
+    headers: getAuthHeaders(),
   });
 
   if (!response.ok) {
@@ -49,11 +82,11 @@ async function recoverVideo(video) {
 
   console.log(`🔧 恢复视频: ${video.uuid}`);
 
-  const response = await fetch(`${API_BASE}/recover?secret=${SECRET}`, {
+  const response = await fetch(`${API_BASE}/recover`, {
     method: "POST",
-    headers: {
+    headers: getAuthHeaders({
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify({
       videoUuid: video.uuid,
       videoUrl: video.videoUrl,
@@ -73,6 +106,12 @@ async function recoverVideo(video) {
 
 async function main() {
   try {
+    if (!RECOVERY_SECRET) {
+      throw new Error(
+        "Missing VIDEO_RECOVERY_SECRET. Export it before running this script."
+      );
+    }
+
     // 检查状态
     const stuckVideos = await checkStuckVideos();
 
