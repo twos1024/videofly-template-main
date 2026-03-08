@@ -167,7 +167,7 @@ export function GeneratorPanel({
             placeholder: tGenerator("promptPlaceholder"),
             videoModels: tGenerator("videoModels"),
             credits: tGenerator("creditsUnit"),
-            settings: tGenerator("model"),
+            settings: tGenerator("settings"),
             aspectRatio: tGenerator("aspectRatio"),
             duration: tGenerator("videoLength"),
             resolution: tGenerator("resolution"),

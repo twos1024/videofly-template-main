@@ -63,6 +63,12 @@ export interface VideoModel {
   id: string;
   /** Display name */
   name: string;
+  /** Official vendor-facing model name */
+  officialName?: string;
+  /** Model provider / vendor label */
+  vendor?: string;
+  /** External documentation or landing page URL */
+  docsUrl?: string;
   /** Model brand logo/icon URL or single character (e.g., "https://example.com/logo.png" or "S") - optional */
   icon?: string;
   /** Optional badge to highlight features */
@@ -235,6 +241,12 @@ export interface ImageModel {
   id: string;
   /** Display name */
   name: string;
+  /** Official vendor-facing model name */
+  officialName?: string;
+  /** Model provider / vendor label */
+  vendor?: string;
+  /** External documentation or landing page URL */
+  docsUrl?: string;
   /** Model brand logo/icon URL or single character - optional */
   icon?: string;
   /** Optional badge */

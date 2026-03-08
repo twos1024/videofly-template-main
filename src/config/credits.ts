@@ -184,7 +184,7 @@ export const CREDITS_CONFIG = {
           },
           "veo-3.1": {
             id: "veo-3.1",
-            name: "Veo 3.1",
+            name: "Veo 3.1 Fast Lite",
             provider: "evolink" as const,
             description: "models.veo31.description",
             supportImageToVideo: true,

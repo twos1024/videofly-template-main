@@ -8,13 +8,13 @@
 
 import type {
   VideoModel,
-  ImageModel,
   GeneratorMode,
   UploadedImage,
 } from "@/components/video-generator/types";
 import type { VideoGeneratorCoreConfig } from "@/components/video-generator/video-generator-core";
 import type { ToolPageConfig } from "@/config/tool-pages/types";
-import { CREDITS_CONFIG, getAvailableModels } from "@/config/credits";
+import { getAvailableModels } from "@/config/credits";
+import { getVideoModelCatalogItem } from "@/config/video-model-catalog";
 
 // ============================================================================
 // 类型转换函数
@@ -24,18 +24,24 @@ import { CREDITS_CONFIG, getAvailableModels } from "@/config/credits";
  * 将 credits.ts 的 ModelConfig 转换为 VideoModel
  */
 function convertToVideoModel(modelConfig: any): VideoModel {
+  const catalogItem = getVideoModelCatalogItem(modelConfig.id);
+
   return {
     id: modelConfig.id,
-    name: modelConfig.name,
-    description: modelConfig.description,
+    name: catalogItem?.name || modelConfig.name,
+    officialName: catalogItem?.officialName,
+    vendor: catalogItem?.vendor,
+    docsUrl: catalogItem?.docsUrl,
+    description: catalogItem?.description || modelConfig.description,
     creditCost: modelConfig.creditCost.base,
     creditDisplay: `${modelConfig.creditCost.base}+`,
-    color: getModelColor(modelConfig.id),
-    icon: getModelIcon(modelConfig.id),
+    color: catalogItem?.color || getModelColor(modelConfig.id),
+    icon: catalogItem?.icon || getModelIcon(modelConfig.id),
     durations: modelConfig.durations?.map((d: number) => `${d}s`),
     aspectRatios: modelConfig.aspectRatios,
     resolutions: modelConfig.qualities,
-    supportsAudio: false,
+    supportsAudio:
+      modelConfig.id === "wan2.6" || modelConfig.id === "seedance-1.5-pro",
   };
 }
 

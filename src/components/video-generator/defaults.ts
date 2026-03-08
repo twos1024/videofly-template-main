@@ -35,6 +35,12 @@ import type {
   GeneratorTexts,
   OutputNumberOption,
 } from "./types";
+import { getVideoModelCatalogItem } from "@/config/video-model-catalog";
+
+const soraCatalog = getVideoModelCatalogItem("sora-2");
+const wanCatalog = getVideoModelCatalogItem("wan2.6");
+const veoCatalog = getVideoModelCatalogItem("veo-3.1");
+const seedanceCatalog = getVideoModelCatalogItem("seedance-1.5-pro");
 
 // ============================================================================
 // Video Models
@@ -46,10 +52,13 @@ export const DEFAULT_VIDEO_MODELS: VideoModel[] = [
   // ============================================================================
   {
     id: "sora-2",
-    name: "Sora 2",
-    icon: "https://videocdn.pollo.ai/web-cdn/pollo/test/cm3pol28q0000ojuuyeo77e36/image/1759998830447-10c6484e-786d-4d05-a2c4-f0c929b1042b.svg",
-    color: "#000000",
-    description: "OpenAI's advanced video generation model",
+    name: soraCatalog?.name ?? "Sora 2",
+    officialName: soraCatalog?.officialName,
+    vendor: soraCatalog?.vendor,
+    docsUrl: soraCatalog?.docsUrl,
+    icon: soraCatalog?.icon,
+    color: soraCatalog?.color ?? "#000000",
+    description: soraCatalog?.description ?? "Cinematic text and image to video generation with clean prompt adherence.",
     maxDuration: "15 sec",
     creditCost: 2, // 10s 无水印 = 2 积分 (1.6 Credits 向上取整)
     // API: duration supports 10, 15 sec
@@ -64,10 +73,13 @@ export const DEFAULT_VIDEO_MODELS: VideoModel[] = [
   // ============================================================================
   {
     id: "wan2.6",
-    name: "Wan 2.6",
-    icon: "https://videocdn.pollo.ai/model-icon/svg/Group.svg",
-    color: "#ff6a00",
-    description: "Text/Image/Reference video to video with audio support",
+    name: wanCatalog?.name ?? "Wan 2.6",
+    officialName: wanCatalog?.officialName,
+    vendor: wanCatalog?.vendor,
+    docsUrl: wanCatalog?.docsUrl,
+    icon: wanCatalog?.icon,
+    color: wanCatalog?.color ?? "#ff6a00",
+    description: wanCatalog?.description ?? "Flexible text, image and reference workflows with 720P and 1080P output.",
     maxDuration: "10 sec",
     creditCost: 25, // 5s 720p = 25 积分
     // Text/Image to Video mode: duration supports 5, 10 sec (❌ 不支持 15s)
@@ -115,10 +127,13 @@ export const DEFAULT_VIDEO_MODELS: VideoModel[] = [
   // ============================================================================
   {
     id: "veo-3.1",
-    name: "Veo 3.1",
-    icon: "https://videocdn.pollo.ai/web-cdn/pollo/production/cm3po9yyf0003oh0c2iyt8ajy/image/1753259785486-de7c53b0-9576-4d3e-a76a-a94fcac57bf1.svg",
-    color: "#4285f4",
-    description: "Google's video generation with reference support",
+    name: veoCatalog?.name ?? "Veo 3.1 Fast Lite",
+    officialName: veoCatalog?.officialName,
+    vendor: veoCatalog?.vendor,
+    docsUrl: veoCatalog?.docsUrl,
+    icon: veoCatalog?.icon,
+    color: veoCatalog?.color ?? "#4285f4",
+    description: veoCatalog?.description ?? "Fast prompt and first-last frame video generation tuned for short-form speed.",
     maxDuration: "8 sec",
     creditCost: 10, // 固定 10 积分 (9.6 Credits 向上取整)
     // API: duration 只支持 8 sec
@@ -141,10 +156,13 @@ export const DEFAULT_VIDEO_MODELS: VideoModel[] = [
   // ============================================================================
   {
     id: "seedance-1.5-pro",
-    name: "Seedance 1.5 Pro",
-    icon: "https://videocdn.pollo.ai/web-cdn/pollo/production/cm3po9yyf0003oh0c2iyt8ajy/image/1754894158793-1e7ef687-c3c1-4f44-8b06-d044a8121f66.svg",
-    color: "#10b981",
-    description: "Text/Image/Frames to video with audio",
+    name: seedanceCatalog?.name ?? "Seedance 1.5 Pro",
+    officialName: seedanceCatalog?.officialName,
+    vendor: seedanceCatalog?.vendor,
+    docsUrl: seedanceCatalog?.docsUrl,
+    icon: seedanceCatalog?.icon,
+    color: seedanceCatalog?.color ?? "#10b981",
+    description: seedanceCatalog?.description ?? "Wide aspect ratio coverage with multi-shot motion and optional audio generation.",
     maxDuration: "12 sec",
     creditCost: 16, // 最小 4s 720p 有音频 = 16 积分 (4秒 × 4积分/秒)
     // API: duration supports 4-12 sec (any integer)
