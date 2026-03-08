@@ -1,6 +1,20 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
+function normalizeAppUrl(value) {
+  if (!value) return undefined;
+
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+  const isLocalHost =
+    /^localhost(?::\d+)?(\/.*)?$/i.test(trimmed) ||
+    /^127\.0\.0\.1(?::\d+)?(\/.*)?$/i.test(trimmed);
+
+  return `${isLocalHost ? "http" : "https"}://${trimmed}`;
+}
+
 const billingProvider = process.env.NEXT_PUBLIC_BILLING_PROVIDER || "stripe";
 const isStripeProvider = billingProvider === "stripe";
 const stripeRequiredMessage =
@@ -9,9 +23,11 @@ const vercelHost =
   process.env.VERCEL_PROJECT_PRODUCTION_URL ||
   process.env.VERCEL_BRANCH_URL ||
   process.env.VERCEL_URL;
-const inferredAppUrl = vercelHost ? `https://${vercelHost}` : undefined;
+const inferredAppUrl = normalizeAppUrl(vercelHost);
 const resolvedAppUrl =
-  process.env.NEXT_PUBLIC_APP_URL || inferredAppUrl || "http://localhost:3000";
+  normalizeAppUrl(process.env.NEXT_PUBLIC_APP_URL) ||
+  inferredAppUrl ||
+  "http://localhost:3000";
 const resolvedAuthSecret =
   process.env.BETTER_AUTH_SECRET ||
   process.env.AUTH_SECRET ||

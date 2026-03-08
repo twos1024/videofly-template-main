@@ -1,13 +1,11 @@
 import { loadEnvConfig } from "@next/env";
 import { defineConfig } from "drizzle-kit";
+import { resolveDatabaseUrl, validateDatabaseUrl } from "./src/lib/env/database-url";
 
 const projectDir = process.cwd();
 loadEnvConfig(projectDir);
 
-const databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
-if (!databaseUrl) {
-  throw new Error("Missing DATABASE_URL/POSTGRES_URL env var");
-}
+const databaseUrl = validateDatabaseUrl(resolveDatabaseUrl(process.env));
 
 export default defineConfig({
   out: "./src/db/migrations",

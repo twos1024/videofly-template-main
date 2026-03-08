@@ -35,7 +35,7 @@ export const ResetPasswordEmail = ({
   locale = "en",
   translations,
   resetUrl,
-  appUrl = "https://pixelmuse.app",
+  appUrl = "https://pexelmuse.app",
 }: ResetPasswordEmailProps) => {
   const currentYear = new Date().getFullYear();
 
@@ -66,7 +66,7 @@ export const ResetPasswordEmail = ({
                 color: "#18181b",
               }}
             >
-              PixelMuse
+              PexelMuse
             </Text>
           </Section>
 

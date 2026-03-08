@@ -1,4 +1,4 @@
-# VideoFly 🎬
+# PexelMuse 🎬
 
 一个面向快速上线的 AI 视频生成 SaaS 模板，基于 Next.js 15 构建，支持 Sora 2、Veo 3.1、Wan 2.6 等模型。
 

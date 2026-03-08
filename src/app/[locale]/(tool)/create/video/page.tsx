@@ -4,7 +4,7 @@ import { getToolPageConfig } from "@/config/tool-pages";
 import { ToolPageLayout } from "@/components/tool/tool-page-layout";
 
 export const metadata: Metadata = {
-  title: "AI 视频生成 - PixelMuse",
+  title: "AI 视频生成 - PexelMuse",
   description: "输入描述或上传图片，AI 生成精美视频",
 };
 

@@ -1,6 +1,6 @@
 {
   "Metadata": {
-    "title": "VideoFly - AI Video Creation Platform",
+    "title": "PexelMuse - AI Video Creation Platform",
     "description": "Turn a prompt or image into polished AI video with Sora 2, Veo 3.1, Wan 2.6, and more."
   },
   "Common": {
@@ -94,7 +94,7 @@
     "badge": "Real Cases",
     "titleLine1": "See What Others",
     "titleLine2": "Are Creating",
-    "description": "Creators across industries use VideoFly to ship ideas faster",
+    "description": "Creators across industries use PexelMuse to ship ideas faster",
     "usingTemplate": "Using template:",
     "case1Badge": "E-Commerce",
     "case1Title": "Online Seller",
@@ -144,11 +144,11 @@
     "subtitle": "The top 6 questions from first-time users",
     "contact": "Still have questions? Feel free to contact us",
     "q1": "I know nothing about AI. Can I use this?",
-    "a1": "Absolutely. VideoFly is built for people who want results without learning a complicated workflow. Write a prompt or upload a reference image and the studio handles the rest.",
+    "a1": "Absolutely. PexelMuse is built for people who want results without learning a complicated workflow. Write a prompt or upload a reference image and the studio handles the rest.",
     "q2": "How many credits does it take to generate an image or video?",
     "a2": "Image generation costs 1–2 credits, video generation costs 2–5 credits, depending on the model and parameters. You receive free trial credits upon signup, enough for multiple tries. Credit packs are purchased as needed — no subscription pressure.",
     "q3": "Can I use the generated images/videos commercially?",
-    "a3": "Yes. Content generated with VideoFly can be used for advertising, social media, e-commerce, and other commercial work. If you upload a reference image, make sure you have the rights to use that source asset.",
+    "a3": "Yes. Content generated with PexelMuse can be used for advertising, social media, e-commerce, and other commercial work. If you upload a reference image, make sure you have the rights to use that source asset.",
     "q4": "How long does generation take?",
     "a4": "Images typically complete in 15–30 seconds; videos usually take 1–3 minutes. You can start other tasks while waiting — the system will notify you when done.",
     "q5": "Can I regenerate if I'm not satisfied with the result?",
@@ -169,8 +169,8 @@
     "linkContact": "Contact Us",
     "linkPrivacy": "Privacy Policy",
     "linkTerms": "Terms of Service",
-    "copyright": "© {currentYear} VideoFly. All rights reserved.",
-    "madeWith": "Made with {heart} by the VideoFly team"
+    "copyright": "© {currentYear} PexelMuse. All rights reserved.",
+    "madeWith": "Made with {heart} by the PexelMuse team"
   },
   "Notifications": {
     "generationWillNotify": "Generation may take a while. We'll notify you when it's ready.",
@@ -303,9 +303,9 @@
     "templatesDesc": "Choose a scene template and let AI create something beautiful",
     "imageTitle": "AI Image Generator",
     "imageDesc": "Describe what you want and let AI generate it",
-    "metaTitleTemplates": "Scene Templates - PixelMuse",
+    "metaTitleTemplates": "Scene Templates - PexelMuse",
     "metaDescTemplates": "20+ scene templates, generate stunning images and videos",
-    "metaTitleImage": "AI Image Generator - PixelMuse",
+    "metaTitleImage": "AI Image Generator - PexelMuse",
     "metaDescImage": "Free-form prompt image generation powered by AI"
   },
   "Credits": {
@@ -396,7 +396,7 @@
     "loading": "Loading...",
     "processing": "Processing...",
     "free_user_only": "Free users welcome",
-    "support_email": "support@pixelmuse.app"
+    "support_email": "support@pexelmuse.app"
   },
   "PricingFaq": {
     "faq": "Frequently Asked Questions",
@@ -441,7 +441,7 @@
   },
   "SignInModal": {
     "signin_title": "Sign in to your account",
-    "signin_subtitle": "Get started with PixelMuse today",
+    "signin_subtitle": "Get started with PexelMuse today",
     "privacy": "By continuing, you agree to our Terms of Service and Privacy Policy.",
     "continue_google": "Continue with Google",
     "continue_email": "Continue with Email",
@@ -450,10 +450,10 @@
     "terms_notice": "By continuing, you agree to our Terms of Service and Privacy Policy."
   },
   "MainNav": {
-    "introducing": "Introducing PixelMuse"
+    "introducing": "Introducing PexelMuse"
   },
   "SiteFooter": {
-    "copyright": "© {currentYear} PixelMuse. All rights reserved."
+    "copyright": "© {currentYear} PexelMuse. All rights reserved."
   },
   "Mail": {
     "common": {
@@ -461,11 +461,11 @@
       "copyright": "© {year} All Rights Reserved."
     },
     "welcome": {
-      "subject": "Welcome to PixelMuse!",
+      "subject": "Welcome to PexelMuse!",
       "greeting": "Hi {name},",
-      "title": "Welcome to PixelMuse!",
-      "body": "Thank you for joining PixelMuse! We've added free trial credits to your account — go create your first masterpiece!",
-      "features": "With PixelMuse, you can:",
+      "title": "Welcome to PexelMuse!",
+      "body": "Thank you for joining PexelMuse! We've added free trial credits to your account — go create your first masterpiece!",
+      "features": "With PexelMuse, you can:",
       "featuresList": {
         "generate": "Generate stunning images and videos from 20+ scene templates",
         "models": "No prompt skills needed — anyone can create with ease",
@@ -478,20 +478,20 @@
       "subject": "Reset Your Password",
       "greeting": "Hi {name},",
       "title": "Reset Your Password",
-      "body": "We received a request to reset your password for your PixelMuse account.",
+      "body": "We received a request to reset your password for your PexelMuse account.",
       "instruction": "Click the button below to reset your password:",
       "button": "Reset Password",
       "validity": "This link will expire in 30 minutes and can only be used once.",
       "ignore": "If you did not request a password reset, you can safely ignore this email.",
       "security": "For security reasons, this link expires after 30 minutes.",
       "footer": "If you didn't request this, please ignore this email.",
-      "copyright": "© {year} PixelMuse. All rights reserved."
+      "copyright": "© {year} PexelMuse. All rights reserved."
     },
     "magicLink": {
-      "subject": "Sign in to PixelMuse",
+      "subject": "Sign in to PexelMuse",
       "greeting": "Hi {name},",
-      "title": "Sign in to PixelMuse",
-      "body": "We received a request to sign in to your PixelMuse account.",
+      "title": "Sign in to PexelMuse",
+      "body": "We received a request to sign in to your PexelMuse account.",
       "instruction": "Click the button below to sign in:",
       "button": "Sign In",
       "validity": "This link will expire in 24 hours.",
@@ -501,11 +501,11 @@
   },
   "Emails": {
     "welcome": {
-      "subject": "Welcome to PixelMuse!",
+      "subject": "Welcome to PexelMuse!",
       "greeting": "Hi {name},",
-      "title": "Welcome to PixelMuse!",
-      "body": "Thank you for joining PixelMuse! We've added free trial credits to your account — go create your first masterpiece!",
-      "features": "With PixelMuse, you can:",
+      "title": "Welcome to PexelMuse!",
+      "body": "Thank you for joining PexelMuse! We've added free trial credits to your account — go create your first masterpiece!",
+      "features": "With PexelMuse, you can:",
       "featuresList": {
         "generate": "Generate stunning images and videos from 20+ scene templates",
         "models": "No prompt skills needed — anyone can create with ease",
@@ -513,20 +513,20 @@
       },
       "cta": "Start Creating",
       "footer": "If you have any questions, feel free to reach out to our support team.",
-      "copyright": "© {year} PixelMuse. All rights reserved."
+      "copyright": "© {year} PexelMuse. All rights reserved."
     },
     "resetPassword": {
       "subject": "Reset Your Password",
       "greeting": "Hi {name},",
       "title": "Reset Your Password",
-      "body": "We received a request to reset your password for your PixelMuse account.",
+      "body": "We received a request to reset your password for your PexelMuse account.",
       "instruction": "Click the button below to reset your password:",
       "button": "Reset Password",
       "validity": "This link will expire in 30 minutes and can only be used once.",
       "ignore": "If you did not request a password reset, you can safely ignore this email.",
       "security": "For security reasons, this link expires after 30 minutes.",
       "footer": "If you didn't request this, please ignore this email.",
-      "copyright": "© {year} PixelMuse. All rights reserved."
+      "copyright": "© {year} PexelMuse. All rights reserved."
     }
   },
   "dashboard": {
@@ -640,26 +640,26 @@
     "generationFailed": "Generation Failed"
   },
   "Terms": {
-    "metaTitle": "Terms of Service - PixelMuse",
+    "metaTitle": "Terms of Service - PexelMuse",
     "title": "Terms of Service",
     "lastUpdated": "Last updated: {year}",
     "section1Title": "1. Acceptance of Terms",
-    "section1Text": "By accessing and using PixelMuse, you accept and agree to be bound by the terms and provisions of this agreement.",
+    "section1Text": "By accessing and using PexelMuse, you accept and agree to be bound by the terms and provisions of this agreement.",
     "section2Title": "2. Use License",
-    "section2Text": "Subject to these terms, PixelMuse grants you a limited, non-exclusive, non-transferable license to use the platform to generate image and video content. Generated content may be used for personal and commercial purposes.",
+    "section2Text": "Subject to these terms, PexelMuse grants you a limited, non-exclusive, non-transferable license to use the platform to generate image and video content. Generated content may be used for personal and commercial purposes.",
     "section3Title": "3. Disclaimer",
-    "section3Text": "The materials on PixelMuse's website are provided \"as is\". PixelMuse makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties.",
+    "section3Text": "The materials on PexelMuse's website are provided \"as is\". PexelMuse makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties.",
     "section4Title": "4. Limitations",
-    "section4Text": "In no event shall PixelMuse or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on PixelMuse's website.",
+    "section4Text": "In no event shall PexelMuse or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on PexelMuse's website.",
     "section5Title": "5. Contact Us",
-    "section5Text": "If you have questions about these terms, please contact us at support@pixelmuse.app."
+    "section5Text": "If you have questions about these terms, please contact us at support@pexelmuse.app."
   },
   "Privacy": {
-    "metaTitle": "Privacy Policy - PixelMuse",
+    "metaTitle": "Privacy Policy - PexelMuse",
     "title": "Privacy Policy",
     "lastUpdated": "Last updated: {year}",
     "section1Title": "1. Introduction",
-    "section1Text": "Welcome to PixelMuse. We respect your privacy and are committed to protecting your personal data.",
+    "section1Text": "Welcome to PexelMuse. We respect your privacy and are committed to protecting your personal data.",
     "section2Title": "2. Data We Collect",
     "section2Text": "We collect information you provide directly to us when you create an account, generate images or videos, or contact support.",
     "section3Title": "3. How We Use Your Data",
@@ -667,7 +667,7 @@
     "section4Title": "4. Data Security",
     "section4Text": "We implement appropriate security measures to protect your personal information.",
     "section5Title": "5. Contact Us",
-    "section5Text": "If you have questions about this policy, please contact us at support@pixelmuse.app."
+    "section5Text": "If you have questions about this policy, please contact us at support@pexelmuse.app."
   },
   "Admin": {
     "sidebar": {

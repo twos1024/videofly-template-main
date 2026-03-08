@@ -16,7 +16,7 @@ export async function generateMetadata({
   const alternates = buildAlternates(`/${pathSegment}`, locale);
 
   return {
-    title: "Wan 2.6 - PixelMuse",
+    title: "Wan 2.6 - PexelMuse",
     description: "Advanced video generation model",
     alternates: {
       canonical: alternates.canonical,

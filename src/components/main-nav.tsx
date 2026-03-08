@@ -32,7 +32,7 @@ export function MainNav({
     <div className="flex gap-6 md:gap-10">
       <div className="flex items-center">
         <LocaleLink href="/" className="hidden items-center space-x-2 md:flex">
-          <div className="text-3xl">PixelMuse</div>
+          <div className="text-3xl">PexelMuse</div>
         </LocaleLink>
 
         <a

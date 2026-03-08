@@ -22,17 +22,33 @@ export interface SiteConfig {
   };
 }
 
+function normalizeAppUrl(value?: string) {
+  if (!value) return undefined;
+
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+  const isLocalHost =
+    /^localhost(?::\d+)?(\/.*)?$/i.test(trimmed) ||
+    /^127\.0\.0\.1(?::\d+)?(\/.*)?$/i.test(trimmed);
+
+  return `${isLocalHost ? "http" : "https"}://${trimmed}`;
+}
+
 const vercelHost =
   process.env.VERCEL_PROJECT_PRODUCTION_URL ||
   process.env.VERCEL_BRANCH_URL ||
   process.env.VERCEL_URL;
-const inferredAppUrl = vercelHost ? `https://${vercelHost}` : undefined;
+const inferredAppUrl = normalizeAppUrl(vercelHost);
 const resolvedAppUrl =
-  process.env.NEXT_PUBLIC_APP_URL || inferredAppUrl || "http://localhost:3000";
+  normalizeAppUrl(process.env.NEXT_PUBLIC_APP_URL) ||
+  inferredAppUrl ||
+  "http://localhost:3000";
 
 export const siteConfig: SiteConfig = {
-  name: "VideoFly",
-  description: "AI 视频生成平台 - 输入灵感即可生成专业视频",
+  name: "PexelMuse",
+  description: "PexelMuse AI 视频生成平台 - 输入灵感即可生成专业视频",
   url: resolvedAppUrl,
   ogImage: "/og.png",
   links: {},

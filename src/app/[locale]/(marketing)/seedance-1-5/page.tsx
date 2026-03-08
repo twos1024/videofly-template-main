@@ -16,7 +16,7 @@ export async function generateMetadata({
   const alternates = buildAlternates(`/${pathSegment}`, locale);
 
   return {
-    title: "Seedance 1.5 - PixelMuse",
+    title: "Seedance 1.5 - PexelMuse",
     description: "Professional AI video generation",
     alternates: {
       canonical: alternates.canonical,

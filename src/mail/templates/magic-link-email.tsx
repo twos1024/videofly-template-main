@@ -52,8 +52,8 @@ MagicLinkEmail.PreviewProps = {
       },
       magicLink: {
         greeting: "Hi {name},",
-        title: "Sign In to PixelMuse",
-        body: "We received a request to sign in to your PixelMuse account.",
+        title: "Sign In to PexelMuse",
+        body: "We received a request to sign in to your PexelMuse account.",
         instruction: "Click the button below to sign in:",
         button: "Sign In",
         validity: "This link will expire in 24 hours.",
@@ -63,5 +63,5 @@ MagicLinkEmail.PreviewProps = {
     },
   },
   name: "John Doe",
-  magicLink: "https://pixelmuse.app/auth/callback?token=abc123",
+  magicLink: "https://pexelmuse.app/auth/callback?token=abc123",
 };

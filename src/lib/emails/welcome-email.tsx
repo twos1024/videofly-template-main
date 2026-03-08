@@ -37,7 +37,7 @@ export const WelcomeEmail = ({
   name = "",
   locale = "en",
   translations,
-  appUrl = "https://pixelmuse.app",
+  appUrl = "https://pexelmuse.app",
 }: WelcomeEmailProps) => {
   const currentYear = new Date().getFullYear();
 
@@ -68,7 +68,7 @@ export const WelcomeEmail = ({
                 color: "#18181b",
               }}
             >
-              PixelMuse
+              PexelMuse
             </Text>
           </Section>
 

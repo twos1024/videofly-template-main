@@ -1,7 +1,7 @@
 /**
  * Email Templates
  *
- * All email templates and utilities for PixelMuse
+ * All email templates and utilities for PexelMuse
  */
 
 export { MagicLinkEmail } from "./magic-link-email";

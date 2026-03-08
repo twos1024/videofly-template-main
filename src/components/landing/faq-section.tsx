@@ -101,10 +101,10 @@ export function FAQSection() {
               <p className="text-muted-foreground">
                 {t("contact")}
                 <a
-                  href="mailto:support@pixelmuse.app"
+                  href="mailto:support@pexelmuse.app"
                   className="text-primary hover:underline mx-1"
                 >
-                  support@pixelmuse.app
+                  support@pexelmuse.app
                 </a>
               </p>
             </motion.div>

@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 
+import { LandingBrand } from "@/components/landing/brand";
 import { cn } from "@/components/ui";
 import { buttonVariants } from "@/components/ui/button";
 import * as Icons from "@/components/ui/icons";
@@ -43,12 +43,12 @@ export default async function LoginPage({
       </Link>
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
         <div className="flex flex-col space-y-2 text-center">
-          <Image
-            src="/images/avatars/saasfly-logo.svg"
+          <LandingBrand
+            href={`/${locale}`}
+            compact
             className="mx-auto"
-            width="64"
-            height="64"
-            alt="PixelMuse Logo - AI Creative Platform"
+            markClassName="rounded-[14px]"
+            textClassName="text-2xl"
           />
           <h1 className="text-2xl font-semibold tracking-tight">
             {dict.login.welcome_back}

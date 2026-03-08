@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = await getTranslations({ locale, namespace: "Templates" });
   if (!template) return { title: t("notFound") };
   return {
-    title: `${template.name} - PixelMuse`,
+    title: `${template.name} - PexelMuse`,
     description: template.description,
   };
 }

@@ -28,7 +28,7 @@ export function LandingBrand({
           markClassName
         )}
       >
-        VF
+        PM
       </div>
       <span
         className={cn(
@@ -37,7 +37,7 @@ export function LandingBrand({
           textClassName
         )}
       >
-        VideoFly
+        PexelMuse
       </span>
     </LocaleLink>
   );

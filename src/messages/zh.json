@@ -1,6 +1,6 @@
 {
   "Metadata": {
-    "title": "VideoFly - AI 视频生成平台",
+    "title": "PexelMuse - AI 视频生成平台",
     "description": "输入一句想法或上传图片，即可生成专业 AI 视频。支持 Sora 2、Veo 3.1、Wan 2.6 等模型。"
   },
   "Common": {
@@ -94,7 +94,7 @@
     "badge": "真实案例",
     "titleLine1": "看看其他人",
     "titleLine2": "在做什么",
-    "description": "各行各业的创作者都在用 VideoFly 高效创作",
+    "description": "各行各业的创作者都在用 PexelMuse 高效创作",
     "usingTemplate": "使用模板:",
     "case1Badge": "电商场景",
     "case1Title": "淘宝卖家",
@@ -144,11 +144,11 @@
     "subtitle": "有疑问？这里是新手最常问的 6 个问题",
     "contact": "还有其他问题？欢迎联系我们",
     "q1": "我完全不懂 AI，能用吗？",
-    "a1": "完全可以。VideoFly 专为零基础用户设计，你只需要写下想法或上传一张参考图，系统就会自动生成可直接使用的视频创作参数与内容。",
+    "a1": "完全可以。PexelMuse 专为零基础用户设计，你只需要写下想法或上传一张参考图，系统就会自动生成可直接使用的视频创作参数与内容。",
     "q2": "生成一张图片/视频需要消耗多少积分？",
     "a2": "图片生成消耗 1-2 积分，视频生成消耗 2-5 积分，具体取决于所选模型和参数。注册后会获赠体验积分，足够你试用多次。积分包按需购买，无订阅压力。",
     "q3": "生成的图片/视频可以商用吗？",
-    "a3": "可以。通过 VideoFly 生成的内容可用于广告、社交媒体、电商展示等商业场景。若你上传了参考图片，请确保你对原始素材拥有相应使用权。",
+    "a3": "可以。通过 PexelMuse 生成的内容可用于广告、社交媒体、电商展示等商业场景。若你上传了参考图片，请确保你对原始素材拥有相应使用权。",
     "q4": "生成需要多长时间？",
     "a4": "图片生成通常在 15-30 秒内完成，视频生成通常需要 1-3 分钟。生成过程中你可以继续发起其他任务，完成后系统会自动通知你。",
     "q5": "如果效果不满意可以重新生成吗？",
@@ -169,8 +169,8 @@
     "linkContact": "联系我们",
     "linkPrivacy": "隐私政策",
     "linkTerms": "服务条款",
-    "copyright": "© {currentYear} VideoFly. 保留所有权利。",
-    "madeWith": "由 VideoFly Team 用 {heart} 打造"
+    "copyright": "© {currentYear} PexelMuse. 保留所有权利。",
+    "madeWith": "由 PexelMuse Team 用 {heart} 打造"
   },
   "Notifications": {
     "generationWillNotify": "生成时间较长，我们会在生成完成后通知你。",
@@ -303,9 +303,9 @@
     "templatesDesc": "选择一个场景模板，AI 帮你创作精美作品",
     "imageTitle": "AI 图片生成",
     "imageDesc": "输入你想要的画面描述，AI 帮你生成",
-    "metaTitleTemplates": "场景模板 - PixelMuse",
+    "metaTitleTemplates": "场景模板 - PexelMuse",
     "metaDescTemplates": "20+ 场景模板，一键生成精美图片和视频",
-    "metaTitleImage": "AI 图片生成 - PixelMuse",
+    "metaTitleImage": "AI 图片生成 - PexelMuse",
     "metaDescImage": "自由输入描述，AI 生成精美图片"
   },
   "Credits": {
@@ -396,7 +396,7 @@
     "loading": "加载中...",
     "processing": "处理中...",
     "free_user_only": "免费用户可买",
-    "support_email": "support@pixelmuse.app"
+    "support_email": "support@pexelmuse.app"
   },
   "PricingFaq": {
     "faq": "常见问题",
@@ -441,7 +441,7 @@
   },
   "SignInModal": {
     "signin_title": "登录你的账户",
-    "signin_subtitle": "立即开始使用 PixelMuse",
+    "signin_subtitle": "立即开始使用 PexelMuse",
     "privacy": "继续即表示你同意我们的服务条款和隐私政策。",
     "continue_google": "使用 Google 继续",
     "continue_email": "使用邮箱继续",
@@ -450,10 +450,10 @@
     "terms_notice": "继续即表示你同意我们的服务条款和隐私政策。"
   },
   "MainNav": {
-    "introducing": "认识 PixelMuse"
+    "introducing": "认识 PexelMuse"
   },
   "SiteFooter": {
-    "copyright": "© {currentYear} PixelMuse. 保留所有权利。"
+    "copyright": "© {currentYear} PexelMuse. 保留所有权利。"
   },
   "Mail": {
     "common": {
@@ -461,11 +461,11 @@
       "copyright": "© {year} 保留所有权利。"
     },
     "welcome": {
-      "subject": "欢迎加入 PixelMuse！",
+      "subject": "欢迎加入 PexelMuse！",
       "greeting": "你好 {name}，",
-      "title": "欢迎来到 PixelMuse！",
-      "body": "感谢你注册 PixelMuse！我们为你准备了体验积分，快去创作你的第一个作品吧。",
-      "features": "使用 PixelMuse，你可以：",
+      "title": "欢迎来到 PexelMuse！",
+      "body": "感谢你注册 PexelMuse！我们为你准备了体验积分，快去创作你的第一个作品吧。",
+      "features": "使用 PexelMuse，你可以：",
       "featuresList": {
         "generate": "从 20+ 场景模板一键生成精美图片和视频",
         "models": "无需提示词技巧，新手也能轻松上手",
@@ -478,20 +478,20 @@
       "subject": "重置你的密码",
       "greeting": "你好 {name}，",
       "title": "重置你的密码",
-      "body": "我们收到了你重置 PixelMuse 账户密码的请求。",
+      "body": "我们收到了你重置 PexelMuse 账户密码的请求。",
       "instruction": "点击下方按钮重置你的密码：",
       "button": "重置密码",
       "validity": "此链接将在 30 分钟后过期，且只能使用一次。",
       "security": "出于安全考虑，此链接将在 30 分钟后过期。",
       "ignore": "如果你没有请求重置密码，可以安全地忽略此邮件。",
       "footer": "如果你没有请求此操作，请忽略此邮件。",
-      "copyright": "© {year} PixelMuse. 保留所有权利。"
+      "copyright": "© {year} PexelMuse. 保留所有权利。"
     },
     "magicLink": {
-      "subject": "登录 PixelMuse",
+      "subject": "登录 PexelMuse",
       "greeting": "你好 {name}，",
-      "title": "登录 PixelMuse",
-      "body": "我们收到了你登录 PixelMuse 账户的请求。",
+      "title": "登录 PexelMuse",
+      "body": "我们收到了你登录 PexelMuse 账户的请求。",
       "instruction": "点击下方按钮登录：",
       "button": "登录",
       "validity": "此链接将在 24 小时后过期。",
@@ -501,11 +501,11 @@
   },
   "Emails": {
     "welcome": {
-      "subject": "欢迎加入 PixelMuse！",
+      "subject": "欢迎加入 PexelMuse！",
       "greeting": "你好 {name}，",
-      "title": "欢迎来到 PixelMuse！",
-      "body": "感谢你注册 PixelMuse！我们为你准备了体验积分，快去创作你的第一个作品吧。",
-      "features": "使用 PixelMuse，你可以：",
+      "title": "欢迎来到 PexelMuse！",
+      "body": "感谢你注册 PexelMuse！我们为你准备了体验积分，快去创作你的第一个作品吧。",
+      "features": "使用 PexelMuse，你可以：",
       "featuresList": {
         "generate": "从 20+ 场景模板一键生成精美图片和视频",
         "models": "无需提示词技巧，新手也能轻松上手",
@@ -513,20 +513,20 @@
       },
       "cta": "开始创作",
       "footer": "如果你有任何问题，欢迎随时联系我们的支持团队。",
-      "copyright": "© {year} PixelMuse. 保留所有权利。"
+      "copyright": "© {year} PexelMuse. 保留所有权利。"
     },
     "resetPassword": {
       "subject": "重置你的密码",
       "greeting": "你好 {name}，",
       "title": "重置你的密码",
-      "body": "我们收到了你重置 PixelMuse 账户密码的请求。",
+      "body": "我们收到了你重置 PexelMuse 账户密码的请求。",
       "instruction": "点击下方按钮重置你的密码：",
       "button": "重置密码",
       "validity": "此链接将在 30 分钟后过期，且只能使用一次。",
       "ignore": "如果你没有请求重置密码，可以安全地忽略此邮件。",
       "security": "出于安全考虑，此链接将在 30 分钟后过期。",
       "footer": "如果你没有请求此操作，请忽略此邮件。",
-      "copyright": "© {year} PixelMuse. 保留所有权利。"
+      "copyright": "© {year} PexelMuse. 保留所有权利。"
     }
   },
   "dashboard": {
@@ -640,26 +640,26 @@
     "generationFailed": "生成失败"
   },
   "Terms": {
-    "metaTitle": "服务条款 - PixelMuse",
+    "metaTitle": "服务条款 - PexelMuse",
     "title": "服务条款",
     "lastUpdated": "最后更新: {year}",
     "section1Title": "1. 接受条款",
-    "section1Text": "访问和使用 PixelMuse，即表示您接受并同意受本协议条款和条件的约束。",
+    "section1Text": "访问和使用 PexelMuse，即表示您接受并同意受本协议条款和条件的约束。",
     "section2Title": "2. 使用许可",
-    "section2Text": "在遵守本条款的前提下，PixelMuse 授予您有限的、非排他性的、不可转让的许可，允许您使用平台生成图片和视频内容。生成的内容可用于个人和商业用途。",
+    "section2Text": "在遵守本条款的前提下，PexelMuse 授予您有限的、非排他性的、不可转让的许可，允许您使用平台生成图片和视频内容。生成的内容可用于个人和商业用途。",
     "section3Title": "3. 免责声明",
-    "section3Text": "PixelMuse 网站上的材料按「原样」提供。PixelMuse 不作任何明示或暗示的保证，并在此声明否认所有其他保证。",
+    "section3Text": "PexelMuse 网站上的材料按「原样」提供。PexelMuse 不作任何明示或暗示的保证，并在此声明否认所有其他保证。",
     "section4Title": "4. 责任限制",
-    "section4Text": "在任何情况下，PixelMuse 或其供应商均不对因使用或无法使用 PixelMuse 网站上的材料而产生的任何损害（包括但不限于数据丢失或利润损失，或由于业务中断造成的损害）承担责任。",
+    "section4Text": "在任何情况下，PexelMuse 或其供应商均不对因使用或无法使用 PexelMuse 网站上的材料而产生的任何损害（包括但不限于数据丢失或利润损失，或由于业务中断造成的损害）承担责任。",
     "section5Title": "5. 联系方式",
-    "section5Text": "如对本条款有任何疑问，请联系 support@pixelmuse.app。"
+    "section5Text": "如对本条款有任何疑问，请联系 support@pexelmuse.app。"
   },
   "Privacy": {
-    "metaTitle": "隐私政策 - PixelMuse",
+    "metaTitle": "隐私政策 - PexelMuse",
     "title": "隐私政策",
     "lastUpdated": "最后更新: {year}",
     "section1Title": "1. 引言",
-    "section1Text": "欢迎使用 PixelMuse。我们尊重您的隐私，致力于保护您的个人数据。",
+    "section1Text": "欢迎使用 PexelMuse。我们尊重您的隐私，致力于保护您的个人数据。",
     "section2Title": "2. 我们收集的数据",
     "section2Text": "当您创建账户、生成图片或视频、或联系支持团队时，我们会收集您直接提供给我们的信息。",
     "section3Title": "3. 数据使用方式",
@@ -667,7 +667,7 @@
     "section4Title": "4. 数据安全",
     "section4Text": "我们实施适当的安全措施来保护您的个人信息。",
     "section5Title": "5. 联系方式",
-    "section5Text": "如对本政策有任何疑问，请联系 support@pixelmuse.app。"
+    "section5Text": "如对本政策有任何疑问，请联系 support@pexelmuse.app。"
   },
   "Admin": {
     "sidebar": {

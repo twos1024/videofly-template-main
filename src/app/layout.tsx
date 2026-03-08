@@ -60,10 +60,10 @@ export const metadata = {
   ],
   authors: [
     {
-      name: "PixelMuse",
+      name: siteConfig.name,
     },
   ],
-  creator: "PixelMuse",
+  creator: siteConfig.name,
   openGraph: {
     type: "website",
     locale: "en_US",

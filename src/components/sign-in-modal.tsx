@@ -108,7 +108,7 @@ export const SignInModalContent = ({
           {dict.signin_title || "Sign in to your account"}
         </h3>
         <p className="text-sm text-muted-foreground">
-          {dict.signin_subtitle || "Get started with PixelMuse today"}
+          {dict.signin_subtitle || "Get started with PexelMuse today"}
         </p>
       </div>
 
