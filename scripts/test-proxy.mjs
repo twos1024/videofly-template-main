@@ -29,7 +29,7 @@ if (!PROXY_URL) {
 }
 
 try {
-  // Use native fetch with undici proxy (Node.js 18+)
+  // Use native fetch with undici proxy (Node.js 20)
   const undici = await import("undici");
   const proxyAgent = new undici.ProxyAgent(PROXY_URL);
   undici.setGlobalDispatcher(proxyAgent);
@@ -71,6 +71,6 @@ try {
   console.error("\nTroubleshooting:");
   console.error("  1. Check if proxy server is running at", PROXY_URL);
   console.error("  2. Verify proxy accepts HTTP connections");
-  console.error("  3. Ensure Node.js version >= 18 (current: " + process.version + ")");
+  console.error("  3. Ensure Node.js version is 20 (current: " + process.version + ")");
   process.exit(1);
 }

@@ -96,7 +96,7 @@ This will:
 - ✅ Works with external API integrations (Evolink, Kie, etc.)
 - ✅ Automatic - no code changes needed after initial setup
 - ⚠️ Only applies to server-side requests (browser requests not affected)
-- ⚠️ Requires Node.js 18+ (undici is built-in)
+- ⚠️ Requires Node.js 20
 
 ## Proxy Server Options
 

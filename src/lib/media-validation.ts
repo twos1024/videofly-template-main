@@ -236,7 +236,7 @@ async function readResponseBuffer(
   }
 
   const reader = response.body.getReader();
-  const chunks: Buffer[] = [];
+  const chunks: Uint8Array[] = [];
   let total = 0;
 
   while (true) {
@@ -255,10 +255,22 @@ async function readResponseBuffer(
       throw new ApiError("Remote asset exceeds the size limit", 400);
     }
 
-    chunks.push(Buffer.from(value));
+    chunks.push(value);
   }
 
-  return Buffer.concat(chunks, total);
+  const combined = new Uint8Array(total);
+  let offset = 0;
+
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  return Buffer.from(
+    combined.buffer,
+    combined.byteOffset,
+    combined.byteLength
+  );
 }
 
 export function validateUploadedImage(buffer: Buffer): ValidatedMedia {

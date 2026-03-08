@@ -38,7 +38,7 @@
 
 ### 环境要求
 
-- Node.js 20+
+- Node.js 20
 - pnpm 9+
 - PostgreSQL 数据库
 
@@ -48,6 +48,9 @@
 # 克隆仓库（使用模板仓库）
 git clone https://github.com/zifeixu85/videofly-template.git your-project
 cd your-project
+
+# 可选：如果你使用 nvm/fnm，会切到仓库指定的 Node 20
+nvm use
 
 # 安装依赖
 pnpm install
