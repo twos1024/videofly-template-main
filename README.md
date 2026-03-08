@@ -58,7 +58,7 @@ pnpm install
 # 配置环境变量
 cp .env.example .env.local
 # 本地开发编辑 .env.local
-# Vercel 部署参考 .env.vercel.example
+# Vercel 也使用同一套 key，直接参考 .env.example
 
 # 初始化数据库
 pnpm db:push
@@ -82,36 +82,46 @@ pnpm build
 ```
 videofly/
 ├── src/
-│   ├── app/                  # Next.js App Router 页面
-│   │   ├── api/              # API 路由
-│   │   │   ├── v1/           # REST API v1
-│   │   │   ├── auth/         # Better Auth 端点
-│   │   │   └── webhooks/     # 支付 Webhook
-│   │   └── [locale]/         # 国际化页面
-│   ├── ai/                   # AI 提供商抽象层
-│   │   └── providers/        # Evolink、Kie 实现
-│   ├── components/           # React 组件
-│   ├── config/               # 配置
-│   │   ├── credits.ts        # 积分/模型定价
-│   │   └── pricing-user.ts   # 用户定价配置
-│   ├── db/                   # 数据库
-│   │   ├── schema.ts         # Drizzle schema
-│   │   └── index.ts
-│   ├── lib/                  # 工具函数
-│   │   ├── auth/             # Better Auth 配置
-│   │   └── storage.ts        # R2/S3 存储
-│   ├── payment/              # 支付集成
-│   ├── services/             # 业务服务
-│   │   ├── credit.ts         # 积分系统
-│   │   └── video.ts          # 视频生成
-│   ├── stores/               # Zustand 状态管理
-│   ├── hooks/                # React Hooks
-│   ├── i18n/                 # 国际化
-│   └── middleware.ts
+│   ├── app/                       # App Router 页面与 API
+│   │   ├── [locale]/              # 国际化页面分组
+│   │   │   ├── (marketing)/       # 营销页
+│   │   │   ├── (tool)/            # 视频生成工作台
+│   │   │   ├── (dashboard)/       # 用户后台
+│   │   │   └── (admin)/           # 管理后台
+│   │   └── api/                   # Auth / billing / video API
+│   ├── components/
+│   │   ├── landing/               # 首页与营销页组件
+│   │   ├── tool/                  # 工作台壳层与历史流
+│   │   ├── video-generator/       # 通用视频生成器组件体系
+│   │   ├── creation/              # 我的作品页组件
+│   │   ├── price/                 # 定价与支付 UI
+│   │   └── ui/                    # 基础 UI 组件
+│   ├── config/                    # 站点、模型、导航、功能开关
+│   │   ├── tool-pages/            # 工具页配置与 adapter
+│   │   └── price/                 # Stripe 定价映射
+│   ├── services/                  # 业务服务层（video / credit / billing）
+│   ├── lib/                       # 基础设施与通用工具
+│   │   ├── auth/                  # Better Auth 配置
+│   │   ├── api/                   # API 响应与客户端
+│   │   └── storage.ts             # R2/S3 存储封装
+│   ├── ai/                        # AI provider 适配层
+│   ├── db/                        # Drizzle schema 与 DB 入口
+│   ├── hooks/                     # React hooks
+│   ├── stores/                    # 客户端状态
+│   ├── messages/                  # i18n 文案
+│   └── styles/                    # 全局样式与主题
 ├── scripts/                  # 工具脚本
 ├── docs/                     # 文档
 └── public/                   # 静态资源
 ```
+
+### 当前目录约定
+
+- `components/video-generator/` 只放可复用生成器能力，不混接口请求和页面状态
+- `components/tool/` 只保留工作台装配、历史流和落地页壳层
+- `config/tool-pages/` 是模型、比例、时长、上传模式的唯一配置入口
+- `services/` 承接视频、积分、计费等服务端业务流程
+- `lib/` 只放跨域工具与基础设施，不再堆放旧页面级实现
 
 ## 🛠 技术栈
 
@@ -123,7 +133,7 @@ videofly/
 | 数据库 | PostgreSQL + Drizzle ORM |
 | 认证 | Better Auth + Google OAuth + Magic Link |
 | 样式 | Tailwind CSS 4 + shadcn/ui |
-| 支付 | Creem + Stripe |
+| 支付 | Stripe |
 | 存储 | R2/S3 |
 | 动画 | Framer Motion |
 
