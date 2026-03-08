@@ -6,7 +6,12 @@
  * @module tool-page-adapter
  */
 
-import type { VideoModel, ImageModel, GeneratorMode } from "@/components/video-generator/types";
+import type {
+  VideoModel,
+  ImageModel,
+  GeneratorMode,
+  UploadedImage,
+} from "@/components/video-generator/types";
 import type { VideoGeneratorCoreConfig } from "@/components/video-generator/video-generator-core";
 import type { ToolPageConfig } from "@/config/tool-pages/types";
 import { CREDITS_CONFIG, getAvailableModels } from "@/config/credits";
@@ -26,11 +31,26 @@ function convertToVideoModel(modelConfig: any): VideoModel {
     creditCost: modelConfig.creditCost.base,
     creditDisplay: `${modelConfig.creditCost.base}+`,
     color: getModelColor(modelConfig.id),
+    icon: getModelIcon(modelConfig.id),
     durations: modelConfig.durations?.map((d: number) => `${d}s`),
     aspectRatios: modelConfig.aspectRatios,
     resolutions: modelConfig.qualities,
     supportsAudio: false,
   };
+}
+
+function getModelIcon(modelId: string): string | undefined {
+  const iconMap: Record<string, string> = {
+    "sora-2":
+      "https://videocdn.pollo.ai/web-cdn/pollo/test/cm3pol28q0000ojuuyeo77e36/image/1759998830447-10c6484e-786d-4d05-a2c4-f0c929b1042b.svg",
+    "veo-3.1":
+      "https://videocdn.pollo.ai/web-cdn/pollo/production/cm3po9yyf0003oh0c2iyt8ajy/image/1753259785486-de7c53b0-9576-4d3e-a76a-a94fcac57bf1.svg",
+    "wan2.6": "https://videocdn.pollo.ai/model-icon/svg/Group.svg",
+    "seedance-1.5-pro":
+      "https://videocdn.pollo.ai/web-cdn/pollo/production/cm3po9yyf0003oh0c2iyt8ajy/image/1754894158793-1e7ef687-c3c1-4f44-8b06-d044a8121f66.svg",
+  };
+
+  return iconMap[modelId];
 }
 
 /**
@@ -59,7 +79,18 @@ function getModelColor(modelId: string): string {
  * @returns VideoGeneratorCore 需要的配置格式
  */
 export function adaptToolPageConfigToGeneratorConfig(
-  toolPageConfig: ToolPageConfig
+  toolPageConfig: ToolPageConfig,
+  overrides?: {
+    prompt?: string;
+    model?: string;
+    duration?: number;
+    aspectRatio?: string;
+    quality?: string;
+    uploadedImages?: UploadedImage[];
+    availableModelIds?: string[];
+    defaultModelId?: string;
+    showImageUpload?: boolean;
+  }
 ): VideoGeneratorCoreConfig {
   const { generator, landing } = toolPageConfig;
 
@@ -68,8 +99,12 @@ export function adaptToolPageConfigToGeneratorConfig(
   const videoModels: VideoModel[] = allModels.map(convertToVideoModel);
 
   // 根据 generator.models.available 过滤模型
-  const availableVideoModels = generator.models.available
-    ? videoModels.filter((m) => generator.models.available!.includes(m.id))
+  const resolvedAvailableModelIds = overrides?.availableModelIds?.length
+    ? overrides.availableModelIds
+    : generator.models.available;
+
+  const availableVideoModels = resolvedAvailableModelIds
+    ? videoModels.filter((m) => resolvedAvailableModelIds.includes(m.id))
     : videoModels;
 
   // 创建默认模式
@@ -78,8 +113,8 @@ export function adaptToolPageConfigToGeneratorConfig(
       id: generator.mode,
       name: getTitleFromMode(generator.mode),
       icon: getIconFromMode(generator.mode),
-      uploadType: generator.mode === "image-to-video" ? "single" : undefined,
-      supportedModels: generator.models.available,
+      uploadType: getUploadTypeFromMode(generator.mode, overrides?.showImageUpload),
+      supportedModels: resolvedAvailableModelIds,
     },
   ];
 
@@ -126,12 +161,22 @@ export function adaptToolPageConfigToGeneratorConfig(
     },
     defaults: {
       generationType: "video",
-      videoModel: generator.models.default || generator.models.available?.[0],
+      prompt: overrides?.prompt,
+      videoModel:
+        overrides?.model ||
+        overrides?.defaultModelId ||
+        generator.models.default ||
+        resolvedAvailableModelIds?.[0],
       videoMode: generator.mode,
-      duration: generator.defaults.duration ? `${generator.defaults.duration}s` : durations[0],
-      videoAspectRatio: generator.defaults.aspectRatio,
-      resolution: resolutions[0],
+      duration: overrides?.duration
+        ? `${overrides.duration}s`
+        : generator.defaults.duration
+          ? `${generator.defaults.duration}s`
+          : durations[0],
+      videoAspectRatio: overrides?.aspectRatio || generator.defaults.aspectRatio,
+      resolution: overrides?.quality || resolutions[0],
       videoOutputNumber: generator.defaults.outputNumber,
+      uploadedImages: overrides?.uploadedImages,
     },
   };
 }
@@ -160,6 +205,25 @@ function getIconFromMode(mode: string): "text" | "image" | "reference" | "frames
     "image-to-image": "image",
   };
   return icons[mode] || "text";
+}
+
+function getUploadTypeFromMode(
+  mode: string,
+  forceSingleUpload = false
+): "single" | "characters" | undefined {
+  if (forceSingleUpload) {
+    return "single";
+  }
+
+  if (mode === "image-to-video") {
+    return "single";
+  }
+
+  if (mode === "reference-to-video") {
+    return "characters";
+  }
+
+  return undefined;
 }
 
 // ============================================================================

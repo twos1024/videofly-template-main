@@ -641,6 +641,7 @@ export function ToolPageLayout({
                 <div className={`${activeTab === "generator" ? "block" : "hidden"} lg:block w-full lg:w-[380px] shrink-0`}>
                   <GeneratorPanel
                     toolType={toolRoute as "image-to-video" | "text-to-video" | "reference-to-video"}
+                    toolConfig={config}
                     isLoading={isSubmitting}
                     onSubmit={handleSubmit}
                     availableModelIds={config.generator.models.available}
@@ -726,6 +727,7 @@ export function ToolPageLayout({
             <div className="h-full min-h-0 rounded-2xl bg-card/70 p-3">
               <GeneratorPanel
                 toolType={toolRoute as "image-to-video" | "text-to-video" | "reference-to-video"}
+                toolConfig={config}
                 isLoading={isSubmitting}
                 onSubmit={handleSubmit}
                 availableModelIds={config.generator.models.available}
@@ -748,9 +750,11 @@ export function ToolPageLayout({
               } lg:flex flex-1 h-full min-h-0`}
           >
             <VideoHistoryPanel
+              userId={user?.id}
               historyItems={historyItems}
               generatingIds={generatingIds}
               onDelete={handleDelete}
+              onRetry={handleRetry}
               className="h-full min-h-0"
             />
           </div>

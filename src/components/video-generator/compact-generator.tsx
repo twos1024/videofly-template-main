@@ -75,6 +75,8 @@ export interface CompactGeneratorProps {
     placeholder?: string;
     credits?: string;
     settings?: string;
+    videoModels?: string;
+    imageModels?: string;
     aspectRatio?: string;
     duration?: string;
     resolution?: string;
@@ -176,7 +178,7 @@ function CompactRenderer() {
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       {/* 隐藏的文件输入 */}
       <input
         ref={refs.fileInputRef}
@@ -187,9 +189,9 @@ function CompactRenderer() {
       />
 
       {/* 输入区域 */}
-      <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-3">
+      <div className="rounded-[26px] border border-white/8 bg-black/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
         {/* 上传和输入行 */}
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           {/* 图片上传区域 */}
           {showImageUpload && computed.uploadSlots.map((slot) => {
             const image = handlers.getImageForSlot(slot.id);
@@ -200,11 +202,11 @@ function CompactRenderer() {
                     <button
                       type="button"
                       onClick={() => handlers.handleRemoveImage(slot.id)}
-                      className="absolute -top-1 -right-1 z-10 p-0.5 rounded-full bg-zinc-700 hover:bg-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute -top-1 -right-1 z-10 rounded-full bg-black/70 p-0.5 opacity-0 transition-opacity hover:bg-black/90 group-hover:opacity-100"
                     >
                       <X className="w-2.5 h-2.5 text-white" />
                     </button>
-                    <div className="w-10 h-12 rounded-lg p-0.5 bg-zinc-800 border border-zinc-700">
+                    <div className="h-12 w-10 rounded-lg border border-white/12 bg-white/[0.04] p-0.5">
                       <div className="relative w-full h-full rounded overflow-hidden">
                         <img
                           src={image.preview}
@@ -218,7 +220,7 @@ function CompactRenderer() {
                   <button
                     type="button"
                     onClick={() => handlers.handleUploadClick(slot.id)}
-                    className="w-10 h-12 rounded-lg border border-dashed border-zinc-700 hover:border-zinc-500 transition-colors flex items-center justify-center text-zinc-500 hover:text-zinc-400"
+                    className="flex h-12 w-10 items-center justify-center rounded-lg border border-dashed border-white/12 text-white/34 transition-colors hover:border-emerald-400/40 hover:text-white/70"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -239,8 +241,8 @@ function CompactRenderer() {
                 placeholder={texts.placeholder ?? texts.videoPlaceholder}
                 disabled={isLoading}
                 className={cn(
-                  "w-full h-full min-h-[48px] max-h-[120px] bg-transparent placeholder:text-zinc-500 resize-none focus:outline-none text-sm leading-relaxed",
-                  validation.promptError ? "text-red-400" : "text-zinc-100",
+                  "h-full max-h-[120px] min-h-[48px] w-full resize-none bg-transparent text-sm leading-relaxed focus:outline-none placeholder:text-white/34",
+                  validation.promptError ? "text-red-400" : "text-white",
                   isLoading && "opacity-50 cursor-not-allowed"
                 )}
                 rows={2}
@@ -254,7 +256,7 @@ function CompactRenderer() {
           <div
             className={cn(
               "text-xs mt-1 text-right",
-              validation.promptError ? "text-red-400" : "text-zinc-500"
+              validation.promptError ? "text-red-400" : "text-white/36"
             )}
           >
             {validation.charCount}
@@ -268,17 +270,17 @@ function CompactRenderer() {
         {features.showModelSelector !== false && computed.currentModel && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button type="button" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors text-xs text-zinc-300">
+              <button type="button" className="flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.04] px-3 py-2 text-xs text-white/76 transition-colors hover:border-emerald-400/30 hover:bg-white/[0.06]">
                 {renderModelIcon(computed.currentModel)}
                 <span className="max-w-[80px] truncate">{computed.currentModel.name}</span>
-                <ChevronDown className="w-3 h-3 text-zinc-500" />
+                <ChevronDown className="w-3 h-3 text-white/40" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-zinc-900 border-zinc-800 w-64 max-h-[320px] overflow-y-auto">
-              <DropdownMenuLabel className="text-zinc-400 text-xs">
+            <DropdownMenuContent className="max-h-[320px] w-64 overflow-y-auto rounded-3xl border border-white/10 bg-[#07110a]/95 p-1 text-white shadow-2xl backdrop-blur-xl">
+              <DropdownMenuLabel className="text-xs text-white/42">
                 {state.generationType === "video" ? texts.videoModels : texts.imageModels}
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-zinc-800" />
+              <DropdownMenuSeparator className="bg-white/8" />
               {computed.availableModels.map((model: any) => (
                 <DropdownMenuItem
                   key={model.id}
@@ -289,7 +291,7 @@ function CompactRenderer() {
                       actions.setImageModel(model);
                     }
                   }}
-                  className="text-zinc-300 hover:bg-zinc-800 flex flex-col items-start py-2"
+                  className="flex flex-col items-start rounded-2xl py-2 text-white/76 focus:bg-white/10 focus:text-white"
                 >
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
@@ -297,11 +299,11 @@ function CompactRenderer() {
                       <span className="text-sm">{model.name}</span>
                     </div>
                     {computed.currentModel?.id === model.id && (
-                      <div className="w-1 h-1 rounded-full bg-green-500" />
+                      <div className="h-1 w-1 rounded-full bg-emerald-400" />
                     )}
                   </div>
                   {model.description && (
-                    <div className="text-[10px] text-zinc-500 mt-0.5 ml-6">{model.description}</div>
+                    <div className="ml-6 mt-0.5 text-[10px] text-white/34">{model.description}</div>
                   )}
                 </DropdownMenuItem>
               ))}
@@ -313,15 +315,15 @@ function CompactRenderer() {
         {showSettings && (
           <Popover open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
             <PopoverTrigger asChild>
-              <button type="button" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors text-xs text-zinc-400">
+              <button type="button" className="flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.04] px-3 py-2 text-xs text-white/56 transition-colors hover:border-emerald-400/30 hover:bg-white/[0.06] hover:text-white/80">
                 <Settings className="w-3.5 h-3.5" />
                 <span>{texts.settings ?? "Settings"}</span>
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-64 bg-zinc-900 border-zinc-800 p-3" align="start">
+            <PopoverContent className="w-64 rounded-3xl border border-white/10 bg-[#07110a]/95 p-3 text-white shadow-2xl backdrop-blur-xl" align="start">
               {/* 宽高比 */}
               <div className="mb-3">
-                <Label className="text-xs text-zinc-400 mb-1.5 block">{texts.aspectRatio}</Label>
+                <Label className="mb-1.5 block text-xs text-white/44">{texts.aspectRatio}</Label>
                 <div className="grid grid-cols-4 gap-1.5">
                   {computed.currentAspectRatio &&
                     (state.generationType === "video"
@@ -335,8 +337,8 @@ function CompactRenderer() {
                         className={cn(
                           "px-2 py-1.5 rounded text-xs transition-colors",
                           computed.currentAspectRatio === ratio
-                            ? "bg-zinc-700 text-white"
-                            : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                            ? "bg-emerald-500 text-black"
+                            : "bg-white/[0.05] text-white/56 hover:bg-white/[0.08]"
                         )}
                       >
                         {ratio}
@@ -348,7 +350,7 @@ function CompactRenderer() {
               {/* 时长（仅视频） */}
               {state.generationType === "video" && computed.showDurationControl && (
                 <div className="mb-3">
-                  <Label className="text-xs text-zinc-400 mb-1.5 block">{texts.duration}</Label>
+                  <Label className="mb-1.5 block text-xs text-white/44">{texts.duration}</Label>
                   <div className="grid grid-cols-4 gap-1.5">
                     {computed.effectiveDurations.map((d: string) => (
                       <button
@@ -358,8 +360,8 @@ function CompactRenderer() {
                         className={cn(
                           "px-2 py-1.5 rounded text-xs transition-colors",
                           state.duration === d
-                            ? "bg-zinc-700 text-white"
-                            : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                            ? "bg-emerald-500 text-black"
+                            : "bg-white/[0.05] text-white/56 hover:bg-white/[0.08]"
                         )}
                       >
                         {d}
@@ -372,7 +374,7 @@ function CompactRenderer() {
               {/* 分辨率（仅视频） */}
               {state.generationType === "video" && computed.showResolutionControl && (
                 <div>
-                  <Label className="text-xs text-zinc-400 mb-1.5 block">{texts.resolution}</Label>
+                  <Label className="mb-1.5 block text-xs text-white/44">{texts.resolution}</Label>
                   <div className="grid grid-cols-4 gap-1.5">
                     {computed.effectiveResolutions.map((r: string) => (
                       <button
@@ -382,8 +384,8 @@ function CompactRenderer() {
                         className={cn(
                           "px-2 py-1.5 rounded text-xs transition-colors",
                           state.resolution === r
-                            ? "bg-zinc-700 text-white"
-                            : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                            ? "bg-emerald-500 text-black"
+                            : "bg-white/[0.05] text-white/56 hover:bg-white/[0.08]"
                         )}
                       >
                         {r}
@@ -402,10 +404,10 @@ function CompactRenderer() {
           onClick={handlers.handleSubmit}
           disabled={!validation.canSubmit}
           className={cn(
-            "ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+            "ml-auto flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium transition-all",
             validation.canSubmit
-              ? "bg-white text-black hover:bg-zinc-200"
-              : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+              ? "bg-emerald-500 text-black shadow-[0_14px_32px_rgba(34,197,94,0.22)] hover:bg-emerald-400"
+              : "cursor-not-allowed bg-white/[0.05] text-white/28"
           )}
         >
           {isLoading ? (
@@ -419,18 +421,18 @@ function CompactRenderer() {
               {texts.generate ?? "Generate"}
             </>
           )}
-          <span className="text-zinc-500">•</span>
+          <span className="text-black/35">•</span>
           <span>{calculatedCredits} {texts.credits}</span>
         </button>
       </div>
 
       {/* 高级设置（仅显示需要时） */}
       {showAdvancedSettings && (computed.effectiveVideoOutputNumbers.length > 1 || computed.modelSupportsAudio) && (
-        <div className="flex items-center gap-3 pt-2 border-t border-zinc-800">
+        <div className="flex items-center gap-3 border-t border-white/8 pt-2">
           {/* 输出数量 */}
           {computed.effectiveVideoOutputNumbers.length > 1 && (
             <div className="flex items-center gap-2">
-              <Label className="text-xs text-zinc-400">{texts.outputNumber}</Label>
+              <Label className="text-xs text-white/44">{texts.outputNumber}</Label>
               <div className="flex gap-1">
                 {computed.effectiveVideoOutputNumbers.map((option: OutputNumberOption) => (
                   <button
@@ -440,8 +442,8 @@ function CompactRenderer() {
                     className={cn(
                       "px-2 py-0.5 rounded text-xs transition-colors",
                       computed.currentOutputNumber === option.value
-                        ? "bg-zinc-700 text-white"
-                        : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700",
+                        ? "bg-emerald-500 text-black"
+                        : "bg-white/[0.05] text-white/56 hover:bg-white/[0.08]",
                       option.isPro && !isPro && "opacity-70"
                     )}
                   >
@@ -455,8 +457,8 @@ function CompactRenderer() {
           {/* 生成音频（仅视频且模型支持时） */}
           {computed.modelSupportsAudio && (
             <div className="flex items-center gap-2">
-              <Volume2 className="w-3.5 h-3.5 text-zinc-500" />
-              <Label className="text-xs text-zinc-300">{texts.generateAudio ?? "Audio"}</Label>
+              <Volume2 className="w-3.5 h-3.5 text-white/40" />
+              <Label className="text-xs text-white/72">{texts.generateAudio ?? "Audio"}</Label>
               <Switch
                 checked={state.generateAudio}
                 onCheckedChange={actions.setGenerateAudio}

@@ -1,53 +1,16 @@
 "use client";
 
-/**
- * Generator Panel Component - Pollo.ai Style
- *
- * Tool page generator panel with dark theme design
- * Design inspired by https://pollo.ai
- * - Dark theme (#1A1A1A background)
- * - Uppercase labels for sections
- * - Purple accent color (#6D28D9)
- * - Dashed border upload area
- */
-
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+
+import { CompactGenerator, type SubmitData, type UploadedImage } from "@/components/video-generator";
 import { cn } from "@/components/ui";
-import { DEFAULT_VIDEO_MODELS } from "@/components/video-generator";
-import { getAvailableModels, calculateModelCredits } from "@/config/credits";
-import { ChevronDown, X, Sparkles, Image as ImageIcon, Clock, Check } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
-
-// ============================================================================
-// Types
-// ============================================================================
-
-interface SectionLabelProps {
-  children: React.ReactNode;
-  required?: boolean;
-  className?: string;
-  htmlFor?: string;
-}
-
-function SectionLabel({ children, required, className, htmlFor }: SectionLabelProps) {
-  return (
-    <label htmlFor={htmlFor} className={cn("text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2 block", className)}>
-      {children}
-      {required && <span className="text-destructive ml-1">*</span>}
-    </label>
-  );
-}
+import type { ToolPageConfig } from "@/config/tool-pages";
+import { adaptToolPageConfigToGeneratorConfig } from "@/config/tool-pages/adapter";
 
 interface GeneratorPanelProps {
   toolType: "image-to-video" | "text-to-video" | "reference-to-video";
+  toolConfig: ToolPageConfig;
   isLoading?: boolean;
   onSubmit?: (data: GeneratorData) => void;
   availableModelIds?: string[];
@@ -76,6 +39,7 @@ export interface GeneratorData {
 
 export function GeneratorPanel({
   toolType,
+  toolConfig,
   isLoading = false,
   onSubmit,
   availableModelIds,
@@ -89,472 +53,152 @@ export function GeneratorPanel({
   initialImageFile,
   allowUnifiedInput = false,
 }: GeneratorPanelProps) {
-  const t = useTranslations("ToolPage");
-  const models = getAvailableModels();
-  const [prompt, setPrompt] = useState(initialPrompt || "");
-  const [selectedModel, setSelectedModel] = useState(initialModelId || defaultModelId || models[0]?.id || "");
-  const [duration, setDuration] = useState(initialDuration || 10);
-  const [aspectRatio, setAspectRatio] = useState(initialAspectRatio || "16:9");
-  const [quality, setQuality] = useState(initialQuality || "standard");
-  const [imageFile, setImageFile] = useState<File | null>(initialImageFile || null);
-  const [imageUrl, setImageUrl] = useState<string | null>(initialImageUrl || null);
-  const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+  const tTool = useTranslations("ToolPage");
+  const tGenerator = useTranslations("ToolPage.generator");
+  const [initialUploadedImages, setInitialUploadedImages] = useState<UploadedImage[]>([]);
 
-  // Filter models based on tool type
-  const availableModels = useMemo(() => {
-    const allowList = Array.isArray(availableModelIds) && availableModelIds.length > 0;
-    let filtered = allowList
-      ? models.filter((m) => availableModelIds!.includes(m.id))
-      : models;
-    const needsImageCapableModel =
-      toolType === "image-to-video" ||
-      toolType === "reference-to-video" ||
-      (allowUnifiedInput && Boolean(imageFile || imageUrl));
+  useEffect(() => {
+    let objectUrl: string | undefined;
 
-    if (needsImageCapableModel) {
-      filtered = filtered.filter((m) => m.supportImageToVideo);
+    if (initialImageFile) {
+      objectUrl = URL.createObjectURL(initialImageFile);
+      setInitialUploadedImages([
+        {
+          file: initialImageFile,
+          preview: objectUrl,
+          slot: "default",
+        },
+      ]);
+    } else if (initialImageUrl) {
+      setInitialUploadedImages([
+        {
+          preview: initialImageUrl,
+          slot: "default",
+          sourceUrl: initialImageUrl,
+        },
+      ]);
+    } else {
+      setInitialUploadedImages([]);
     }
-    return filtered;
-  }, [toolType, models, availableModelIds, allowUnifiedInput, imageFile, imageUrl]);
 
-  const currentModel = useMemo(
-    () => availableModels.find((m) => m.id === selectedModel) || availableModels[0],
-    [selectedModel, availableModels]
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [initialImageFile, initialImageUrl]);
+
+  const generatorConfig = useMemo(
+    () =>
+      adaptToolPageConfigToGeneratorConfig(toolConfig, {
+        prompt: initialPrompt,
+        model: initialModelId,
+        duration: initialDuration,
+        aspectRatio: initialAspectRatio,
+        quality: initialQuality,
+        uploadedImages: initialUploadedImages,
+        availableModelIds,
+        defaultModelId,
+        showImageUpload:
+          toolType === "image-to-video" ||
+          toolType === "reference-to-video" ||
+          allowUnifiedInput,
+      }),
+    [
+      allowUnifiedInput,
+      availableModelIds,
+      defaultModelId,
+      initialAspectRatio,
+      initialDuration,
+      initialModelId,
+      initialPrompt,
+      initialQuality,
+      initialUploadedImages,
+      toolConfig,
+      toolType,
+    ]
   );
 
-  const modelMetadata = useMemo(() => {
-    return new Map(DEFAULT_VIDEO_MODELS.map((model) => [model.id, model]));
-  }, []);
-
-  const getModelIcon = (modelId: string, fallbackName: string) => {
-    const meta = modelMetadata.get(modelId);
-    return meta?.icon ?? fallbackName.charAt(0).toUpperCase();
-  };
-
-  const getModelColor = (modelId: string) => {
-    const meta = modelMetadata.get(modelId);
-    return meta?.color ?? "#71717a";
-  };
-
-  const renderModelIcon = (modelId: string, name: string, size: "sm" | "md" = "sm") => {
-    const icon = getModelIcon(modelId, name);
-    const color = getModelColor(modelId);
-    const sizeClass = size === "sm" ? "w-4 h-4 text-xs" : "w-6 h-6 text-xs";
-
-    if (typeof icon === "string" && (icon.startsWith("http://") || icon.startsWith("https://") || icon.startsWith("/"))) {
-      return (
-        <img
-          src={icon}
-          alt={name}
-          className={cn(sizeClass, "rounded object-cover")}
-        />
-      );
-    }
-
-    return (
-      <span
-        className={cn(sizeClass, "rounded flex items-center justify-center font-bold")}
-        style={{ backgroundColor: color, color: "#fff" }}
-      >
-        {typeof icon === "string" ? icon : name.charAt(0).toUpperCase()}
-      </span>
-    );
-  };
-
-  useEffect(() => {
-    if (!currentModel) return;
-
-    if (currentModel.durations && !currentModel.durations.includes(duration)) {
-      setDuration(currentModel.durations[0] || duration);
-    }
-
-    if (currentModel.aspectRatios && !currentModel.aspectRatios.includes(aspectRatio)) {
-      setAspectRatio(currentModel.aspectRatios[0] || aspectRatio);
-    }
-
-    if (currentModel.qualities) {
-      if (!currentModel.qualities.includes(quality)) {
-        setQuality(currentModel.qualities[0] || quality);
-      }
-    }
-  }, [currentModel, duration, aspectRatio, quality]);
-
-  useEffect(() => {
-    if (!availableModels.length) return;
-    if (selectedModel && availableModels.some((m) => m.id === selectedModel)) {
-      return;
-    }
-    const fallback = defaultModelId && availableModels.some((m) => m.id === defaultModelId)
-      ? defaultModelId
-      : availableModels[0]?.id;
-    if (fallback) {
-      setSelectedModel(fallback);
-    }
-  }, [availableModels, selectedModel, defaultModelId]);
-
-  useEffect(() => {
-    if (initialPrompt && !prompt) {
-      setPrompt(initialPrompt);
-    }
-    if (initialImageFile && !imageFile && !imageUrl) {
-      setImageFile(initialImageFile);
-    }
-    if (initialImageUrl && !imageFile && !imageUrl) {
-      setImageUrl(initialImageUrl);
-    }
-  }, [initialPrompt, initialImageUrl, initialImageFile, prompt, imageFile, imageUrl]);
-
-  useEffect(() => {
-    if (!currentModel) return;
-    if (initialDuration && currentModel.durations?.includes(initialDuration)) {
-      setDuration(initialDuration);
-    }
-    if (initialAspectRatio && currentModel.aspectRatios?.includes(initialAspectRatio)) {
-      setAspectRatio(initialAspectRatio);
-    }
-    if (initialQuality && currentModel.qualities?.includes(initialQuality)) {
-      setQuality(initialQuality);
-    }
-  }, [currentModel, initialDuration, initialAspectRatio, initialQuality]);
-
-  const estimatedCredits = useMemo(() => {
-    if (!selectedModel) return 0;
-    return calculateModelCredits(selectedModel, {
-      duration,
-      quality: currentModel?.qualities?.includes(quality) ? quality : undefined,
-    });
-  }, [selectedModel, duration, quality, currentModel]);
-
-  const handleSubmit = useCallback(() => {
-    const hasPrompt = prompt.trim().length > 0;
-    const requiresImage = toolType !== "text-to-video";
-    const hasImage = Boolean(imageFile || imageUrl);
-    if (!hasPrompt || isLoading) return;
-    if (requiresImage && !hasImage) return;
-
-    const data: GeneratorData = {
-      toolType,
-      model: selectedModel,
-      prompt: prompt.trim(),
-      duration,
-      aspectRatio,
-      quality: currentModel?.qualities?.includes(quality) ? quality : undefined,
-      imageFile: imageFile || undefined,
-      imageUrl: imageUrl || undefined,
-      estimatedCredits,
-    };
-
-    onSubmit?.(data);
-  }, [
-    prompt,
-    selectedModel,
-    duration,
-    aspectRatio,
-    quality,
-    imageFile,
-    imageUrl,
-    estimatedCredits,
-    isLoading,
+  const prefillKey = [
     toolType,
-    onSubmit,
-    currentModel,
-  ]);
+    initialPrompt ?? "",
+    initialModelId ?? defaultModelId ?? "",
+    initialDuration ?? "",
+    initialAspectRatio ?? "",
+    initialQuality ?? "",
+    initialImageFile?.name ?? "",
+    initialImageUrl ?? "",
+  ].join(":");
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      setImageUrl(null);
-    }
-  };
+  const handleSubmit = (data: SubmitData) => {
+    const parsedDuration = Number.parseInt(data.duration ?? "", 10);
 
-  const handleRemoveImage = () => {
-    setImageFile(null);
-    setImageUrl(null);
-  };
-
-  const canSubmit = prompt.trim().length > 0 &&
-    (!((toolType !== "text-to-video") && !imageFile && !imageUrl)) &&
-    !isLoading;
-
-  const showImageUploader =
-    toolType === "image-to-video" ||
-    toolType === "reference-to-video" ||
-    allowUnifiedInput;
-
-
-  // Get page title
-  const getPageTitle = () => {
-    if (toolType === "image-to-video") return t("generator.pageTitle.imageToVideo");
-    if (toolType === "text-to-video") return t("generator.pageTitle.textToVideo");
-    if (toolType === "reference-to-video") return t("generator.pageTitle.referenceToVideo");
-    return t("generator.pageTitle.aiGenerator");
+    onSubmit?.({
+      toolType,
+      model: data.model,
+      prompt: data.prompt.trim(),
+      duration: Number.isNaN(parsedDuration) ? initialDuration ?? 10 : parsedDuration,
+      aspectRatio: data.aspectRatio,
+      quality: data.resolution,
+      imageFile: data.images?.[0],
+      imageUrl: data.imageUrls?.[0],
+      estimatedCredits: data.estimatedCredits,
+    });
   };
 
   return (
     <div className="h-full flex flex-col">
-      {/* Main Card - Pollo.ai Style */}
-      <div className="flex-1 flex flex-col rounded-xl bg-card border border-border overflow-hidden text-foreground">
-        {/* Header Bar */}
-        <div className="px-5 py-3 bg-muted/40 border-b border-border shrink-0">
-          <h2 className="text-sm text-muted-foreground font-medium uppercase tracking-wide">
-            {getPageTitle()}
-          </h2>
-        </div>
-
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-5 custom-scrollbar">
-          {/* Model Selection */}
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-              {t("generator.model")}
-            </span>
-            {currentModel && (
-              <DropdownMenu open={isModelDropdownOpen} onOpenChange={setIsModelDropdownOpen}>
-                <DropdownMenuTrigger asChild disabled={isLoading}>
-                  <button type="button" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm text-white">
-                    {renderModelIcon(currentModel.id, currentModel.name, "sm")}
-                    <span>{currentModel.name}</span>
-                    <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-zinc-900 border-zinc-800 w-80 max-h-[400px] overflow-y-scroll custom-scrollbar">
-                  <DropdownMenuLabel className="text-zinc-400 text-xs">
-                    {t("generator.videoModels")}
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-zinc-800" />
-                  {availableModels.map((model) => (
-                    <DropdownMenuItem
-                      key={model.id}
-                      data-model-id={model.id}
-                      onClick={() => setSelectedModel(model.id)}
-                      className="text-white hover:bg-zinc-800 flex flex-col items-start py-3"
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center gap-2">
-                          {renderModelIcon(model.id, model.name, "md")}
-                          <span className="font-medium">{model.name}</span>
-                        </div>
-                        {selectedModel === model.id && (
-                          <Check className="w-4 h-4 text-green-500" />
-                        )}
-                      </div>
-                      {model.description && (
-                        <div className="text-xs text-zinc-500 mt-1 ml-8">{model.description}</div>
-                      )}
-                      <div className="text-xs text-zinc-400 mt-1 ml-8 flex items-center gap-2">
-                        {model.maxDuration && (
-                          <>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {model.maxDuration}
-                            </span>
-                            <span>•</span>
-                          </>
-                        )}
-                        <span>{model.creditCost?.base ?? ""} {t("generator.creditsUnit")}</span>
-                      </div>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-
-          {/* Prompt Section */}
+      <div className="flex-1 overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,18,10,0.94),rgba(4,11,7,0.96))] p-5 text-white shadow-[0_26px_80px_rgba(0,0,0,0.34)]">
+        <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/8 pb-4">
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <SectionLabel className="mb-0" htmlFor="generator-prompt">{t("generator.prompt")}</SectionLabel>
-            </div>
-            <textarea
-              id="generator-prompt"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder={t("generator.promptPlaceholder")}
-              disabled={isLoading}
-              className="w-full min-h-[100px] max-h-[200px] px-4 py-3 rounded-lg bg-muted/40 border border-border text-foreground placeholder:text-muted-foreground/70 resize-none focus:outline-none focus:border-primary transition-colors text-sm leading-relaxed"
-              rows={4}
-              maxLength={2000}
-            />
-          </div>
-
-          {/* Image Upload (for image-to-video) */}
-          {showImageUploader && (
-              <div>
-                <SectionLabel required={toolType === "image-to-video"}>
-                  {toolType === "reference-to-video" ? t("generator.referenceImage") : t("generator.imageSource")}
-                </SectionLabel>
-                {imageFile || imageUrl ? (
-                  <div className="relative group h-32 rounded-lg overflow-hidden border-2 border-zinc-700">
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt="Selected"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center p-3">
-                        <span className="text-xs font-medium truncate bg-background/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border">
-                          {imageFile?.name}
-                        </span>
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="absolute top-2 right-2 p-1.5 rounded-full bg-muted/80 hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-3.5 h-3.5 text-foreground" />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="flex flex-col items-center justify-center w-full h-32 rounded-lg border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors group">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-muted/60 group-hover:bg-muted transition-colors">
-                      <ImageIcon className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-3">{t("generator.uploadImage")}</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">{t("generator.uploadHint")}</p>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                      disabled={isLoading}
-                    />
-                  </label>
-                )}
-              </div>
-            )}
-
-
-          {/* Settings Group */}
-          <div className="space-y-5">
-            {/* Aspect Ratio */}
-            {currentModel?.aspectRatios && (
-              <div>
-                <SectionLabel>{t("generator.aspectRatio")}</SectionLabel>
-                <div className="grid grid-cols-3 gap-3">
-                  {currentModel.aspectRatios.map((ar) => (
-                    <button
-                      key={ar}
-                      type="button"
-                      onClick={() => setAspectRatio(ar)}
-                      disabled={isLoading}
-                      className={cn(
-                        "aspect-square w-full rounded-lg text-xs font-medium transition-all border flex items-center justify-center",
-                        aspectRatio === ar
-                          ? "bg-primary/10 text-foreground border-primary"
-                          : "bg-muted/40 text-muted-foreground border-border hover:border-muted-foreground/40"
-                      )}
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <div className={cn(
-                          "border-2 rounded-sm",
-                          aspectRatio === ar ? "border-primary" : "border-muted-foreground/50",
-                          ar === "16:9" && "w-8 h-4",
-                          ar === "9:16" && "w-4 h-8",
-                          ar === "1:1" && "w-6 h-6",
-                          ar === "4:3" && "w-6 h-4",
-                          ar === "3:4" && "w-4 h-6"
-                        )} />
-                        <span>{ar}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Duration & Quality */}
-            <div className="grid grid-cols-2 gap-4">
-              {currentModel?.durations && (
-                <div>
-                  <SectionLabel>{t("generator.videoLength")}</SectionLabel>
-                  <div className="grid grid-cols-3 gap-2">
-                    {currentModel.durations.map((d) => (
-                      <button
-                        key={d}
-                        type="button"
-                        onClick={() => setDuration(d)}
-                        disabled={isLoading}
-                        className={cn(
-                          "h-10 rounded-lg text-sm font-medium transition-all",
-                          duration === d
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted/40 text-muted-foreground hover:bg-muted/60"
-                        )}
-                      >
-                        {d}s
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {currentModel?.qualities && (
-                <div>
-                  <SectionLabel>{t("generator.resolution")}</SectionLabel>
-                  <div className="grid grid-cols-3 gap-2">
-                    {currentModel.qualities.map((q) => (
-                      <button
-                        key={q}
-                        type="button"
-                        onClick={() => setQuality(q)}
-                        disabled={isLoading}
-                        className={cn(
-                          "h-10 rounded-lg text-sm font-medium transition-all capitalize",
-                          quality === q
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted/40 text-muted-foreground hover:bg-muted/60"
-                        )}
-                      >
-                        {q}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.22em] text-white/72">
+              {getPageTitle(toolType, tGenerator)}
+            </h2>
+            <p className="mt-1 text-xs text-white/42">{tTool("tipsLine1")}</p>
           </div>
         </div>
 
-        {/* Bottom Section - Credits + Generate Button */}
-        <div className="px-5 py-4 bg-muted/40 border-t border-border space-y-4 shrink-0">
-          {/* Credits Display */}
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{t("generator.totalCredits")}</span>
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-              <span className="text-foreground font-medium">{estimatedCredits} {t("generator.creditsUnit")}</span>
-            </div>
-          </div>
-
-          {/* Generate Button */}
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            className={cn(
-              "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all",
-              canSubmit
-                ? "bg-primary hover:bg-primary/90 text-primary-foreground"
-                : "bg-muted text-muted-foreground cursor-not-allowed"
-            )}
-          >
-            {isLoading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-primary-foreground/40 border-t-primary-foreground rounded-full animate-spin" />
-                {t("generator.generating")}
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                {t("generator.generateVideo")}
-              </>
-            )}
-          </button>
-        </div>
+        <CompactGenerator
+          key={prefillKey}
+          config={generatorConfig}
+          isLoading={isLoading}
+          onSubmit={handleSubmit}
+          texts={{
+            placeholder: tGenerator("promptPlaceholder"),
+            videoModels: tGenerator("videoModels"),
+            credits: tGenerator("creditsUnit"),
+            settings: tGenerator("model"),
+            aspectRatio: tGenerator("aspectRatio"),
+            duration: tGenerator("videoLength"),
+            resolution: tGenerator("resolution"),
+            generate: tGenerator("generateVideo"),
+            generating: tGenerator("generating"),
+            generateAudio: "Audio",
+            generateAudioDesc: "Generate synced audio when supported",
+          }}
+          className={cn(
+            "[&_button]:transition",
+            "[&_textarea]:placeholder:text-white/34",
+            "[&_textarea]:text-white",
+            "[&_.switch]:data-[state=checked]:bg-emerald-500"
+          )}
+        />
       </div>
     </div>
   );
+}
+
+function getPageTitle(
+  toolType: GeneratorPanelProps["toolType"],
+  t: (key: string) => string
+) {
+  if (toolType === "image-to-video") {
+    return t("pageTitle.imageToVideo");
+  }
+
+  if (toolType === "reference-to-video") {
+    return t("pageTitle.referenceToVideo");
+  }
+
+  return t("pageTitle.textToVideo");
 }

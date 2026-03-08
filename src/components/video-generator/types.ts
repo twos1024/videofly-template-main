@@ -368,11 +368,13 @@ export interface PromptTemplate {
  */
 export interface UploadedImage {
   /** Original file object */
-  file: File;
+  file?: File;
   /** Base64 preview URL */
   preview: string;
   /** Slot identifier (e.g., "default", "start", "char1") */
   slot: string;
+  /** Remote image URL when the source is already uploaded */
+  sourceUrl?: string;
 }
 
 /**

@@ -590,7 +590,10 @@ export function VideoGeneratorInput({
 
   const imageError = useMemo(() => {
     if (validateImages && uploadedImages.length > 0) {
-      return validateImages(uploadedImages.map((img) => img.file));
+      const files = uploadedImages
+        .map((img) => img.file)
+        .filter((file): file is File => file instanceof File);
+      return files.length > 0 ? validateImages(files) : null;
     }
     return null;
   }, [uploadedImages, validateImages]);
@@ -671,22 +674,24 @@ export function VideoGeneratorInput({
     // Separate actual files from template URLs
     // If preview starts with http/https, it's a template URL
     const imageUrls = uploadedImages
-      .filter(img => img.preview.startsWith("http"))
-      .map(img => img.preview);
+      .map((img) => img.sourceUrl ?? (img.preview.startsWith("http") ? img.preview : undefined))
+      .filter((url): url is string => typeof url === "string" && url.length > 0);
 
     // Only send files if they are NOT template URLs (or if we really want to support both)
     // For now, if we have a URL, we prefer sending that to avoid upload
     const imagesToSend = uploadedImages
-      .filter(img => !img.preview.startsWith("http"))
-      .map(img => img.file);
+      .map((img) => img.file)
+      .filter((file): file is File => file instanceof File);
 
     const data: SubmitData = {
       type: generationType,
       prompt,
-      images: imagesToSend.length > 0 ? imagesToSend : (uploadedImages.length > 0 && imageUrls.length === 0 ? uploadedImages.map(i => i.file) : undefined),
+      images: imagesToSend.length > 0 ? imagesToSend : undefined,
       imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       imageSlots: uploadedImages.length > 0
-        ? uploadedImages.map((img) => ({ slot: img.slot, file: img.file }))
+        ? uploadedImages
+            .filter((img): img is UploadedImage & { file: File } => img.file instanceof File)
+            .map((img) => ({ slot: img.slot, file: img.file }))
         : undefined,
       model: currentModel.id,
       mode: currentMode.id,

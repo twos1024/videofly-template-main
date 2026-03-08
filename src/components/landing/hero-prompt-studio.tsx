@@ -3,6 +3,7 @@
 import {
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
   type ChangeEvent,
@@ -28,11 +29,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/components/ui";
-import { calculateModelCredits, getAvailableModels } from "@/config/credits";
+import { calculateModelCredits } from "@/config/credits";
+import { textToVideoConfig } from "@/config/tool-pages";
+import { adaptToolPageConfigToGeneratorConfig } from "@/config/tool-pages/adapter";
 import { useLocaleRouter } from "@/i18n/navigation";
 import { saveToolPrefill } from "@/lib/tool-prefill";
 
-const HERO_MODEL_IDS = ["sora-2", "veo-3.1", "wan2.6", "seedance-1.5-pro"];
 const PROMPT_SUGGESTION_KEYS = [
   "prompt1",
   "prompt2",
@@ -47,6 +49,13 @@ const modelMeta = new Map(DEFAULT_VIDEO_MODELS.map((model) => [model.id, model])
 interface SelectPillOption {
   value: string;
   label: string;
+}
+
+interface HeroModelOption {
+  id: string;
+  name: string;
+  durations: number[];
+  aspectRatios: string[];
 }
 
 interface SelectPillProps {
@@ -115,9 +124,20 @@ export function HeroPromptStudio() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [suggestionOffset, setSuggestionOffset] = useState(0);
 
-  const models = getAvailableModels().filter((model) =>
-    HERO_MODEL_IDS.includes(model.id)
+  const generatorConfig = useMemo(
+    () => adaptToolPageConfigToGeneratorConfig(textToVideoConfig, { showImageUpload: true }),
+    []
   );
+  const models: HeroModelOption[] = generatorConfig.videoModels
+    .map((model) => ({
+      id: model.id,
+      name: model.name,
+      durations: (model.durations ?? [])
+        .map((value) => Number.parseInt(value, 10))
+        .filter((value) => !Number.isNaN(value)),
+      aspectRatios: model.aspectRatios ?? generatorConfig.aspectRatios?.video ?? ["16:9"],
+    }))
+    .filter((model) => model.durations.length > 0);
   const currentModel =
     models.find((model) => model.id === selectedModel) ?? models[0];
 

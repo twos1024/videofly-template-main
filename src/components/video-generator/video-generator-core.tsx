@@ -21,7 +21,6 @@ import type {
   SubmitData,
   OutputNumberOption,
   UploadedImage,
-  UploadSlot,
 } from "./types";
 
 // Hooks 导入
@@ -61,6 +60,7 @@ export interface VideoGeneratorCoreConfig {
   // 默认值
   defaults?: {
     generationType?: "video" | "image";
+    prompt?: string;
     videoModel?: string;
     imageModel?: string;
     videoMode?: string;
@@ -72,6 +72,7 @@ export interface VideoGeneratorCoreConfig {
     videoOutputNumber?: number;
     imageOutputNumber?: number;
     imageStyle?: string;
+    uploadedImages?: UploadedImage[];
   };
 }
 
@@ -339,12 +340,22 @@ export function VideoGeneratorCore({
   const handleSubmit = React.useCallback(() => {
     if (!validation.canSubmit || !computed.currentModel || !computed.currentMode) return;
 
+    const fileImages = state.uploadedImages
+      .map((img) => img.file)
+      .filter((file): file is File => file instanceof File);
+    const remoteImageUrls = state.uploadedImages
+      .map((img) => img.sourceUrl ?? (img.preview.startsWith("http") ? img.preview : undefined))
+      .filter((url): url is string => typeof url === "string" && url.length > 0);
+
     const data: SubmitData = {
       type: state.generationType,
       prompt: state.prompt,
-      images: state.uploadedImages.length > 0 ? state.uploadedImages.map((img) => img.file) : undefined,
+      images: fileImages.length > 0 ? fileImages : undefined,
+      imageUrls: remoteImageUrls.length > 0 ? remoteImageUrls : undefined,
       imageSlots: state.uploadedImages.length > 0
-        ? state.uploadedImages.map((img) => ({ slot: img.slot, file: img.file }))
+        ? state.uploadedImages
+            .filter((img): img is UploadedImage & { file: File } => img.file instanceof File)
+            .map((img) => ({ slot: img.slot, file: img.file }))
         : undefined,
       model: computed.currentModel.id,
       mode: computed.currentMode.id,

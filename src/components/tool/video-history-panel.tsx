@@ -1,114 +1,302 @@
-/**
- * Video History Panel
- *
- * 视频历史记录面板组件
- * - 显示最近 10 条视频记录
- * - 按时间排序：最旧的在最上面，最新的在最下面
- * - 空状态：显示示例视频占位
- * - 替代现有的 ResultPanel
- */
+"use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
+import { VideoCard, VideoStatusCard } from "@/components/video-generator";
 import { cn } from "@/components/ui";
 import { Button } from "@/components/ui/button";
-import { VideoHistoryCard } from "./video-history-card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { videoTaskStorage } from "@/lib/video-task-storage";
 import { DemoVideos } from "./demo-videos";
 import type { VideoHistoryItem } from "@/lib/video-history-storage";
 
 interface VideoHistoryPanelProps {
+  userId?: string;
   historyItems: VideoHistoryItem[];
   generatingIds?: string[];
-  onDelete?: (uuid: string) => void;
+  onDelete?: (uuid: string) => void | Promise<void>;
+  onRetry?: (uuid: string) => void | Promise<void>;
   className?: string;
 }
 
+interface VisibleHistoryItem extends VideoHistoryItem {}
+
+function formatHistoryTime(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const isToday = date.toDateString() === now.toDateString();
+  if (isToday) {
+    return date.toLocaleTimeString(undefined, {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  }
+
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function buildMeta(video: VisibleHistoryItem) {
+  return [
+    video.model,
+    video.aspectRatio,
+    typeof video.duration === "number" ? `${video.duration}s` : undefined,
+    formatHistoryTime(video.createdAt),
+  ].filter((value): value is string => Boolean(value));
+}
+
 export function VideoHistoryPanel({
+  userId,
   historyItems,
   generatingIds = [],
   onDelete,
+  onRetry,
   className,
 }: VideoHistoryPanelProps) {
-  const t = useTranslations("VideoHistory");
+  const tHistory = useTranslations("VideoHistory");
+  const tTool = useTranslations("ToolPage");
+  const tStatus = useTranslations("dashboard.myCreations.status");
+  const tActions = useTranslations("dashboard.myCreations.actions");
+  const tDeleteConfirm = useTranslations("dashboard.myCreations.deleteConfirm");
   const locale = useLocale();
   const router = useRouter();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState<string | null>(null);
 
-  // 只显示最近10个视频（最新的10个）
-  // 排序：最旧的在上面，最新的在下面
-  const recentItems = [...historyItems]
-    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-    .slice(-10);  // 取最后10个（最新的10个）
+  const recentItems = useMemo(
+    () =>
+      [...historyItems]
+        .sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        )
+        .slice(-10),
+    [historyItems]
+  );
 
-  // 滚动到底部（显示最新的视频）
+  const fallbackGeneratingItems = useMemo(() => {
+    if (!userId) return [];
+
+    const knownIds = new Set(recentItems.map((item) => item.uuid));
+    return videoTaskStorage
+      .getGeneratingTasks(userId)
+      .filter(
+        (task) => generatingIds.includes(task.videoId) && !knownIds.has(task.videoId)
+      )
+      .map<VisibleHistoryItem>((task) => ({
+        uuid: task.videoId,
+        userId,
+        prompt: task.prompt ?? "",
+        model: task.model ?? "",
+        status: "generating",
+        creditsUsed: 0,
+        createdAt: new Date(task.createdAt).toISOString(),
+        updatedAt: new Date(task.createdAt).toISOString(),
+      }));
+  }, [generatingIds, recentItems, userId]);
+
+  const visibleItems = useMemo(
+    () =>
+      [...recentItems, ...fallbackGeneratingItems]
+        .sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        )
+        .slice(-10),
+    [fallbackGeneratingItems, recentItems]
+  );
+
   useEffect(() => {
-    if (scrollRef.current && recentItems.length > 0) {
-      // 延迟执行，确保 DOM 已经渲染
-      const timer = setTimeout(() => {
-        scrollRef.current?.scrollTo({
-          top: scrollRef.current.scrollHeight,  // 滚动到底部
-          behavior: "smooth",
-        });
-      }, 100);
+    if (!scrollRef.current || visibleItems.length === 0) return;
 
-      return () => clearTimeout(timer);
+    const timer = setTimeout(() => {
+      scrollRef.current?.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [visibleItems.length]);
+
+  const hasItems = visibleItems.length > 0;
+
+  const handleDelete = async (uuid: string) => {
+    if (!onDelete) return;
+    setIsDeleting(uuid);
+    try {
+      await onDelete(uuid);
+    } finally {
+      setIsDeleting(null);
+      setDeleteDialogOpen(null);
     }
-  }, [recentItems.length]);
+  };
 
-  const hasItems = historyItems.length > 0;
+  const handleRetry = async (uuid: string) => {
+    if (!onRetry) return;
+    setIsRetrying(uuid);
+    try {
+      await onRetry(uuid);
+    } finally {
+      setIsRetrying(null);
+    }
+  };
 
   return (
     <div
       className={cn(
-        "h-full w-full rounded-2xl border border-zinc-800 bg-zinc-900/70 overflow-hidden flex flex-col",
+        "h-full w-full rounded-2xl border border-white/8 bg-[linear-gradient(180deg,rgba(7,18,10,0.88),rgba(4,11,7,0.94))] overflow-hidden flex flex-col shadow-[0_22px_60px_rgba(0,0,0,0.28)]",
         className
       )}
     >
-      {/* 头部 */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 shrink-0">
+      <div className="flex items-center justify-between border-b border-white/8 px-5 py-4 shrink-0">
         <div className="flex items-center gap-2 text-sm font-semibold text-white">
-          <Sparkles className="h-4 w-4 text-purple-500" />
-          {hasItems ? t("title") : t("demoTitle")}
+          <Sparkles className="h-4 w-4 text-emerald-400" />
+          {hasItems ? tHistory("title") : tHistory("demoTitle")}
         </div>
         {hasItems && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push(`/${locale}/my-creations`)}
-            className="h-7 text-xs text-zinc-400 hover:text-white hover:bg-zinc-800"
+            className="h-7 text-xs text-white/56 hover:text-white hover:bg-white/[0.04]"
           >
-            {t("moreCreations")}
-            <ArrowRight className="h-3 w-3 ml-1" />
+            {tHistory("moreCreations")}
+            <ArrowRight className="ml-1 h-3 w-3" />
           </Button>
         )}
       </div>
 
-      {/* 内容区域 */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-6">
         {!hasItems ? (
-          // 空状态：显示示例视频
-          <div className="h-full flex flex-col justify-center">
+          <div className="flex h-full flex-col justify-center">
             <DemoVideos />
           </div>
         ) : (
-          // 有历史记录：显示列表（最近10个）
           <div className="space-y-4">
-            {recentItems.map((video) => {
-              const isGenerating = generatingIds.includes(video.uuid);
+            {visibleItems.map((video) => {
+              const isGenerating =
+                generatingIds.includes(video.uuid) || video.status === "generating";
+              const labels = {
+                pending: tStatus("pending"),
+                generating: tStatus("generating"),
+                uploading: tStatus("uploading"),
+                completed: tStatus("completed"),
+                failed: tStatus("failed"),
+                play: tActions("play"),
+                download: tActions("download"),
+                delete: tActions("delete"),
+                retry: tActions("retry"),
+                errorTitle: tHistory("generationFailed"),
+              };
+
+              if (isGenerating) {
+                return (
+                  <VideoStatusCard
+                    key={video.uuid}
+                    status="GENERATING"
+                    prompt={video.prompt || tHistory("untitled")}
+                    meta={buildMeta(video)}
+                    identifier={`#${video.uuid.slice(0, 8)}`}
+                    labels={{
+                      title: tTool("queueTitle"),
+                      pending: tStatus("pending"),
+                      generating: tStatus("generating"),
+                      uploading: tStatus("uploading"),
+                      completed: tStatus("completed"),
+                      failed: tStatus("failed"),
+                      waiting: tStatus("processing"),
+                      generatingHint: tTool("generatingHint"),
+                      uploadingHint: tStatus("uploading"),
+                    }}
+                  />
+                );
+              }
+
               return (
-                <VideoHistoryCard
+                <VideoCard
                   key={video.uuid}
-                  video={video}
-                  isGenerating={isGenerating}
-                  onDelete={() => onDelete?.(video.uuid)}
+                  className="w-full"
+                  video={{
+                    uuid: video.uuid,
+                    prompt: video.prompt || tHistory("untitled"),
+                    model: video.model || "N/A",
+                    status: video.status.toUpperCase(),
+                    videoUrl: video.videoUrl ?? null,
+                    thumbnailUrl: video.thumbnailUrl ?? null,
+                    createdAt: video.createdAt,
+                    creditsUsed: video.creditsUsed,
+                    duration: video.duration ?? null,
+                    aspectRatio: video.aspectRatio ?? null,
+                    errorMessage:
+                      video.status === "failed" ? tHistory("generationFailed") : null,
+                  }}
+                  onDelete={
+                    onDelete ? () => setDeleteDialogOpen(video.uuid) : undefined
+                  }
+                  onRetry={
+                    video.status === "failed" && onRetry
+                      ? () => handleRetry(video.uuid)
+                      : undefined
+                  }
+                  isRetrying={isRetrying === video.uuid}
+                  labels={labels}
                 />
               );
             })}
           </div>
         )}
       </div>
+
+      <AlertDialog
+        open={deleteDialogOpen !== null}
+        onOpenChange={(open) => !open && setDeleteDialogOpen(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{tDeleteConfirm("title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {tDeleteConfirm("message")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tDeleteConfirm("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                deleteDialogOpen ? handleDelete(deleteDialogOpen) : undefined
+              }
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting !== null}
+            >
+              {tDeleteConfirm("confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

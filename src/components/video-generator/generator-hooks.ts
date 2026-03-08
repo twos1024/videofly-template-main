@@ -73,6 +73,7 @@ export interface GeneratorHooksConfig {
   // 默认值
   defaults?: {
     generationType?: GenerationType;
+    prompt?: string;
     videoModel?: string;
     imageModel?: string;
     videoMode?: string;
@@ -83,6 +84,7 @@ export interface GeneratorHooksConfig {
     resolution?: string;
     videoOutputNumber?: number;
     imageOutputNumber?: number;
+    uploadedImages?: UploadedImage[];
   };
 }
 
@@ -149,8 +151,10 @@ export function useGeneratorState(
     defaults.generationType ?? (videoModels.length > 0 ? "video" : "image")
   );
 
-  const [prompt, setPrompt] = useState("");
-  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [prompt, setPrompt] = useState(defaults.prompt ?? "");
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>(
+    defaults.uploadedImages ?? []
+  );
 
   // 视频模型和模式
   const [selectedVideoModel, setSelectedVideoModel] = useState<VideoModel | null>(
@@ -579,7 +583,10 @@ export function useGeneratorValidation(
 
   const imageError = useMemo(() => {
     if (validateImages && uploadedImages.length > 0) {
-      return validateImages(uploadedImages.map((img) => img.file));
+      const files = uploadedImages
+        .map((img) => img.file)
+        .filter((file): file is File => file instanceof File);
+      return files.length > 0 ? validateImages(files) : null;
     }
     return null;
   }, [uploadedImages, validateImages]);
