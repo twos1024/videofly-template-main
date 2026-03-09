@@ -122,7 +122,7 @@ export const SUBSCRIPTION_PRODUCTS = [
   {
     id: "prod_jsRIeZmqn3L9NN0fiFIn6", // 从 Creem 后台复制 Basic Monthly Product ID
     name: "Basic Plan",
-    priceUsd: 9.9,
+    priceUsd: 9,
     credits: 280, // ~28 Veo 3.1 视频 (60% 毛利率)
     period: "month" as const,
     popular: false,
@@ -132,7 +132,7 @@ export const SUBSCRIPTION_PRODUCTS = [
   {
     id: "prod_3tlZPSRNHZSaNq22zX2Z16", // 从 Creem 后台复制 Pro Monthly Product ID
     name: "Pro Plan",
-    priceUsd: 29.9,
+    priceUsd: 29,
     credits: 960, // ~96 Veo 3.1 视频 (55% 毛利率，比 Basic 便宜 12%)
     period: "month" as const,
     popular: true, // 推荐
@@ -142,7 +142,7 @@ export const SUBSCRIPTION_PRODUCTS = [
   {
     id: "prod_3tlZPSRNHZSaNq22zX2Z18", // 从 Creem 后台复制 Ultimate Monthly Product ID
     name: "Ultimate Plan",
-    priceUsd: 79.9,
+    priceUsd: 79,
     credits: 2850, // ~285 Veo 3.1 视频 (50% 毛利率，比 Basic 便宜 21%)
     period: "month" as const,
     popular: false,
@@ -203,7 +203,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
   {
     id: "prod_3tlZPSRNHZSaNq22zX2ZPO", // 从 Creem 后台复制 Starter Pack Product ID
     name: "Starter Pack",
-    priceUsd: 14.9,
+    priceUsd: 14,
     credits: 280, // 和 Basic 月付积分相同
     popular: false,
     enabled: true,
@@ -213,7 +213,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
   {
     id: "prod_3tlZPSRNHZSaNq22zX2Z12", // 从 Creem 后台复制 Standard Pack Product ID
     name: "Standard Pack",
-    priceUsd: 39.9, // 比月付 Pro 贵 33%
+    priceUsd: 39, // 比月付 Pro 贵 33%
     credits: 960, // 和 Pro 月付积分相同
     popular: true, // 推荐
     enabled: true,
@@ -223,7 +223,7 @@ export const CREDIT_PACKAGES: CreditPackageConfig[] = [
   {
     id: "prod_3tlZPSRNHZSaNq22zX2Z13", // 从 Creem 后台复制 Pro Pack Product ID
     name: "Pro Pack",
-    priceUsd: 99.9, // 比月付 Ultimate 贵 25%
+    priceUsd: 99, // 比月付 Ultimate 贵 25%
     credits: 2850, // 和 Ultimate 月付积分相同
     popular: false,
     enabled: true,
