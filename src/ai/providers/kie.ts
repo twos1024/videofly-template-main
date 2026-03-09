@@ -47,7 +47,19 @@ export class KieProvider implements AIVideoProvider {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(30_000),
     });
+
+    if (!response.ok) {
+      let errorMessage = `KIE API error: ${response.status}`;
+      try {
+        const error = await response.json();
+        errorMessage = error.msg || error.message || errorMessage;
+      } catch {
+        errorMessage = response.statusText || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
 
     const result = await response.json();
     if (result.code !== 200) throw new Error(result.msg || "API error");
@@ -95,8 +107,12 @@ export class KieProvider implements AIVideoProvider {
 
     const response = await fetch(
       `${this.baseUrl}/api/v1/jobs/recordInfo?taskId=${taskId}`,
-      { headers: { Authorization: `Bearer ${this.apiKey}` } }
+      { headers: { Authorization: `Bearer ${this.apiKey}` }, signal: AbortSignal.timeout(30_000) }
     );
+
+    if (!response.ok) {
+      throw new Error(`KIE API error: ${response.status} ${response.statusText}`);
+    }
 
     const result = await response.json();
     if (result.code !== 200) throw new Error(result.msg);
@@ -195,8 +211,12 @@ export class KieProvider implements AIVideoProvider {
   private async getVeoTaskStatus(taskId: string): Promise<VideoTaskResponse> {
     const response = await fetch(
       `${this.baseUrl}/api/v1/veo/record-info?taskId=${taskId}`,
-      { headers: { Authorization: `Bearer ${this.apiKey}` } }
+      { headers: { Authorization: `Bearer ${this.apiKey}` }, signal: AbortSignal.timeout(30_000) }
     );
+
+    if (!response.ok) {
+      throw new Error(`KIE VEO API error: ${response.status} ${response.statusText}`);
+    }
 
     const result = await response.json();
     if (result.code !== 200) throw new Error(result.msg || "API error");

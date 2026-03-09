@@ -8,7 +8,7 @@
     "language": "TypeScript",
     "framework": "Next.js 15 (App Router)",
     "styling": "Tailwind CSS",
-    "database": "PostgreSQL + Kysely",
+    "database": "PostgreSQL + Drizzle ORM",
     "auth": "Better Auth",
     "packageManager": "pnpm",
     "monorepo": "Turborepo"

@@ -3,7 +3,7 @@ import { and, desc, eq, lt, or } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getStorage } from "@/lib/storage";
 import { getModelConfig, calculateModelCredits } from "../config/credits";
-import { getProvider, type ProviderType, type VideoTaskResponse } from "../ai";
+import { getProvider, isValidProviderType, type ProviderType, type VideoTaskResponse } from "../ai";
 import { creditService } from "./credit";
 import { generateSignedCallbackUrl } from "@/ai/utils/callback-signature";
 import { ApiError } from "@/lib/api/error";
@@ -298,9 +298,9 @@ export class VideoService {
       };
     }
 
-    if (video.externalTaskId && video.provider) {
+    if (video.externalTaskId && video.provider && isValidProviderType(video.provider)) {
       try {
-        const provider = getProvider(video.provider as ProviderType);
+        const provider = getProvider(video.provider);
         const result = await provider.getTaskStatus(video.externalTaskId);
 
         if (result.status === "completed" && result.videoUrl) {

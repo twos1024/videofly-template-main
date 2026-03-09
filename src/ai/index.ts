@@ -4,6 +4,12 @@ import { KieProvider } from "./providers/kie";
 
 export type ProviderType = "evolink" | "kie";
 
+const VALID_PROVIDERS: ReadonlySet<string> = new Set<ProviderType>(["evolink", "kie"]);
+
+export function isValidProviderType(value: unknown): value is ProviderType {
+  return typeof value === "string" && VALID_PROVIDERS.has(value);
+}
+
 const providers: Map<ProviderType, AIVideoProvider> = new Map();
 
 export function getProvider(type: ProviderType): AIVideoProvider {
@@ -11,12 +17,18 @@ export function getProvider(type: ProviderType): AIVideoProvider {
 
   let provider: AIVideoProvider;
   switch (type) {
-    case "evolink":
-      provider = new EvolinkProvider(process.env.EVOLINK_API_KEY!);
+    case "evolink": {
+      const apiKey = process.env.EVOLINK_API_KEY;
+      if (!apiKey) throw new Error("EVOLINK_API_KEY environment variable is not set");
+      provider = new EvolinkProvider(apiKey);
       break;
-    case "kie":
-      provider = new KieProvider(process.env.KIE_API_KEY!);
+    }
+    case "kie": {
+      const apiKey = process.env.KIE_API_KEY;
+      if (!apiKey) throw new Error("KIE_API_KEY environment variable is not set");
+      provider = new KieProvider(apiKey);
       break;
+    }
     default:
       throw new Error(`Unknown provider: ${type}`);
   }

@@ -41,6 +41,7 @@ export class EvolinkProvider implements AIVideoProvider {
         ...transformedParams,
         model: providerModelId,
       }),
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {
@@ -72,6 +73,7 @@ export class EvolinkProvider implements AIVideoProvider {
       `${this.baseUrl}/tasks/${taskId}`,
       {
         headers: { Authorization: `Bearer ${this.apiKey}` },
+        signal: AbortSignal.timeout(30_000),
       }
     );
 

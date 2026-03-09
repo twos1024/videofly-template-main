@@ -1,15 +1,13 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { requireAuth } from "@/lib/api/auth";
+import { assertRateLimit, getClientIp } from "@/lib/api/rate-limit";
 import { ApiError } from "@/lib/api/error";
 import { apiSuccess, handleApiError } from "@/lib/api/response";
 import { enableImageGeneration } from "@/config/features";
 import { imageService } from "@/services/image";
 // Import proxy configuration for fetch requests
 import "@/lib/proxy-config";
-
-// TODO: Add rate limiting before production deployment
-// Recommended: @upstash/ratelimit with Redis, 10 req/min per user
 
 const generateSchema = z.object({
   prompt: z.string().min(1).max(5000),
@@ -27,6 +25,21 @@ export async function POST(request: NextRequest) {
     }
 
     const user = await requireAuth(request);
+    const clientIp = getClientIp(request);
+
+    assertRateLimit({
+      key: `image-generate:user:${user.id}`,
+      limit: 10,
+      windowMs: 60_000,
+      message: "Too many image generation requests",
+    });
+    assertRateLimit({
+      key: `image-generate:ip:${clientIp}`,
+      limit: 30,
+      windowMs: 60_000,
+      message: "Too many image generation requests",
+    });
+
     const body = await request.json();
     const data = generateSchema.parse(body);
 

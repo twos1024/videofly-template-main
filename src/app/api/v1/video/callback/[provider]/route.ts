@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { videoService } from "@/services/video";
-import { type ProviderType } from "@/ai";
+import { isValidProviderType } from "@/ai";
 import { verifyCallbackSignature } from "@/ai/utils/callback-signature";
 import { apiSuccess, apiError } from "@/lib/api/response";
 
@@ -10,12 +10,11 @@ export async function POST(
 ) {
   try {
     const { provider } = await params;
-    const providerType = provider as ProviderType;
 
-    // Validate provider type
-    if (!["evolink", "kie"].includes(providerType)) {
+    if (!isValidProviderType(provider)) {
       return apiError("Invalid provider", 400);
     }
+    const providerType = provider;
 
     // Get signature info from URL params
     const { searchParams } = new URL(request.url);

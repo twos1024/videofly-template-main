@@ -3,7 +3,7 @@ import { images } from "@/db/schema";
 import { and, desc, eq, lt, or } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getStorage } from "@/lib/storage";
-import { getProvider, type ProviderType } from "@/ai";
+import { getProvider, isValidProviderType, type ProviderType } from "@/ai";
 import type { VideoTaskResponse } from "@/ai/types";
 import { ApiError } from "@/lib/api/error";
 import { assertRemoteAssetDownloadConfigured } from "@/lib/media-validation";
@@ -253,9 +253,9 @@ export class ImageService {
       };
     }
 
-    if (image.externalTaskId && image.provider) {
+    if (image.externalTaskId && image.provider && isValidProviderType(image.provider)) {
       try {
-        const provider = getProvider(image.provider as ProviderType);
+        const provider = getProvider(image.provider);
         const result = await provider.getTaskStatus(image.externalTaskId);
 
         if (result.status === "completed" && result.videoUrl) {
